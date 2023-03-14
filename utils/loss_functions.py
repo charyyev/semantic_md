@@ -21,13 +21,25 @@ class ShiftInvariantLoss(nn.Module):
         return torch.mean(loss_per_item)
 
 
-class ReverseHuberLoss(nn.Module):
+class BerHuLoss(nn.Module):
+    """
+    https://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=7785097
+    """
+
     def __init__(self):
-        super(ReverseHuberLoss, self).__init__()
+        super(BerHuLoss, self).__init__()
 
     def forward(self, y_pred, y_true):
-        # TODO
-        raise NotImplementedError()
+        diff = torch.abs(y_pred - y_true)
+        c = .2 * torch.max(diff)
+
+        # Conditional statement to determine how to calculate loss element-wise
+        loss = torch.zeros_like(diff)
+        mask = diff <= c
+        loss[mask] = diff[mask]
+        loss[~mask] = (diff[~mask] ** 2 + c * +2) / (2 * c)
+
+        return loss.mean()
 
 
 def test():
@@ -45,7 +57,7 @@ def test():
     print(y_pred.size())
 
     # instantiate your custom loss function
-    criterion = ShiftInvariantLoss()
+    criterion = BerHuLoss()
 
     # compute the loss between y_pred and y_true
     loss = criterion(y_pred, y_true)
