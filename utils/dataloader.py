@@ -1,5 +1,4 @@
 import os
-import torch
 import numpy as np
 from torch.utils.data import Dataset, DataLoader
 from torchvision.transforms import ToTensor
@@ -14,8 +13,8 @@ hypersim
 │   │   │   ├── scene_cam_00_final_hdf5             <--- this is where the images are stored
 │   │   │   │   └── frame.0000.color.hdf5           <--- example image
 │   │   │   ├── scene_cam_00_geometry_hdf5          <--- this is where the images are stored
-│   │   │   │   ├── frame.0000.depth_meters.hdf5    <--- example image
-│   │   │   │   └── frame.0000.semantic.hdf5        <--- example image
+│   │   │   │   ├── frame.0000.depth_meters.hdf5    <--- example depth map
+│   │   │   │   └── frame.0000.semantic.hdf5        <--- example segmentation map
 │   │   └── _detail
 │   │
 │   │
