@@ -1,6 +1,6 @@
 import segmentation_models_pytorch as smp
 
-from unet import Unet
+from models.unet import Unet
 
 
 class ModelFactory:
