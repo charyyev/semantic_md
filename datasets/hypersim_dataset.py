@@ -6,6 +6,7 @@ from torchvision.transforms import ToTensor
 import h5py
 import re
 import random
+from matplotlib import pyplot as plt
 
 '''
 hypersim
@@ -82,18 +83,20 @@ class HyperSimDataset(Dataset):
 
             # get all file names in the respective image / geometry folders
             pre_image_paths = os.listdir(current_image_path)
-            label_paths = os.listdir(current_label_path)
 
             # Filter for images that are the color images, depth maps, and segmentation paths respectively
             # join for full path
-            current_image_paths = [os.path.join(current_image_path, path) for path in pre_image_paths if
-                                   re.match(r"frame\.\d{4}\.color\.hdf5", path)]
+            image_paths = []
+            for path in pre_image_paths:
+                match = re.search(r"(frame\.\d{4})\.color\.hdf5", path)
+                if match:
+                    image_paths.append(match.group(1))
+
+            current_image_paths = [os.path.join(current_image_path, path + '.color.hdf5') for path in image_paths]
             self.image_paths += current_image_paths
-            current_depth_paths = [os.path.join(current_label_path, path) for path in label_paths if
-                                   re.match(r"frame\.\d{4}\.depth_meters\.hdf5", path)]
+            current_depth_paths = [os.path.join(current_label_path, path + '.depth_meters.hdf5') for path in image_paths]
             self.depth_paths += current_depth_paths
-            current_seg_paths = [os.path.join(current_label_path, path) for path in label_paths if
-                                 re.match(r"frame\.\d{4}\.semantic\.hdf5", path)]
+            current_seg_paths = [os.path.join(current_label_path, path + '.semantic.hdf5') for path in image_paths]
             self.seg_paths += current_seg_paths
 
         # assert length of all is the same
@@ -132,6 +135,9 @@ class HyperSimDataset(Dataset):
             depth_np = self.transform(depth_np)
             seg_np = self.transform(seg_np)
 
+        tt = ToTensor()
+        image_only = tt(image_np.copy())
+
         if self.data_flags.get("onehot", False):
             nr_classes = self.data_flags["seg_classes"]
             # Create the identity matrix with size 40x40 (nr_classes)
@@ -143,12 +149,11 @@ class HyperSimDataset(Dataset):
         if self.data_flags.get("concat", False):
             image_np = np.concatenate((image_np, seg_np), axis=-1)
 
-        tt = ToTensor()
         image_tensor = tt(image_np)
         depth_tensor = tt(depth_np)
         seg_tensor = tt(seg_np)
 
-        return {"image": image_tensor, "depths": depth_tensor, "segs": seg_tensor}
+        return {"image": image_tensor, "depths": depth_tensor, "segs": seg_tensor, "image_only": image_only}
 
 
 def main():
@@ -156,7 +161,7 @@ def main():
     root_dir = os.path.dirname(current_path)
     dataset_root_dir = os.path.join(root_dir, 'hypersim', 'decompressed')
 
-    transform = ToTensor()
+    transform = None
 
     dataset = HyperSimDataset(root_dir=dataset_root_dir, transform=transform)
     dataloader = DataLoader(dataset, batch_size=4, shuffle=True, num_workers=4)
@@ -164,6 +169,24 @@ def main():
     for i, batch in enumerate(dataloader):
         images, depth, seg = batch["image"], batch["depths"], batch["segs"]
         print(images.size(), depth.size(), seg.size(), sep='\n', end='\n\n')
+
+        # Display the images, depth maps, and segmentation maps in separate subplots
+        for idx in range(images.size(0)):
+            plt.figure(figsize=(15, 5))
+            plt.subplot(1, 3, 1)
+            plt.imshow(images[idx].permute(1, 2, 0))
+            plt.title('Image')
+
+            plt.subplot(1, 3, 2)
+            plt.imshow(depth[idx].squeeze(), cmap='viridis')
+            plt.title('Depth Map')
+
+            plt.subplot(1, 3, 3)
+            plt.imshow(seg[idx].squeeze(), cmap='tab20')
+            plt.title('Segmentation Map')
+
+            plt.show()
+            exit(0)
 
 
 if __name__ == '__main__':

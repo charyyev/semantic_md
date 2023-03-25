@@ -4,6 +4,7 @@ import vispy
 from vispy.scene import SceneCanvas
 from vispy import app
 
+from datasets.hypersim_dataset import HyperSimDataset
 from datasets.nyu_dataset import NyuDataset
 
 
@@ -13,40 +14,34 @@ class Vis():
         self.dataset = dataset
 
         self.canvas = SceneCanvas(keys='interactive',
-                                show=True,
-                                size=(1280, 480))
+                                  show=True,
+                                  size=(1280, 480))
         self.canvas.events.key_press.connect(self._key_press)
         self.canvas.events.draw.connect(self._draw)
         self.canvas.show()
 
         self.view = self.canvas.central_widget.add_view()
         self.image = vispy.scene.visuals.Image(parent=self.view.scene)
-        
-        
+
         self.update_image()
-   
 
     def update_image(self):
         data = self.dataset[self.index]
-        image = data["image"].permute((1, 2, 0))
+        image = data["image"].permute((1, 2, 0))[:, :, :3]
         depths = data["depths"].squeeze().numpy()
-        
-        image = image.numpy() / 255
-        img_depths = (depths - np.min(depths)) / np.max(depths)
-        img_depths =  np.repeat(np.expand_dims(img_depths, axis = 2), 3, axis = 2)
-        
-        
-        img = np.concatenate((image, img_depths), 1)       
 
-           
+        image = image.numpy()
+        img_depths = (depths - np.nanmin(depths)) / np.nanmax(depths)
+        img_depths = np.repeat(np.expand_dims(img_depths, axis=2), 3, axis=2)
+
+        img = np.concatenate((image, img_depths), 1)
+
         self.canvas.title = str(self.index)
         self.image.set_data(img)
         self.view.camera = vispy.scene.PanZoomCamera(aspect=1)
         self.view.camera.set_range()
         self.view.camera.flip = (0, 1, 0)
         self.canvas.update()
-
-
 
     def _key_press(self, event):
         if event.key == 'Right':
@@ -75,12 +70,11 @@ class Vis():
         self.canvas.app.run()
 
 
-
 if __name__ == "__main__":
-    data_file = "/home/sapar/3dvision/data/list/train.txt"
-    data_location = "/home/sapar/3dvision/data/nyu_depth_v2_labeled.mat"
+    dataset_root_dir = "/home/oliver/Documents/University/2023/ext-projects/semantic_md/datasets/hypersim/decompressed"
+    data_flags = dict(concat=True, onehot=False)
 
-    dataset = NyuDataset(data_file, data_location)
-    
+    dataset = HyperSimDataset(root_dir=dataset_root_dir, train=True, transform=None, data_flags=data_flags)
+
     vis = Vis(dataset)
     vis.run()
