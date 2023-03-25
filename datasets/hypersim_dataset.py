@@ -1,5 +1,6 @@
 import os
 import numpy as np
+import torch
 from torch.utils.data import Dataset, DataLoader
 from torchvision.transforms import ToTensor
 import h5py
@@ -34,17 +35,22 @@ hypersim
 
 
 class HyperSimDataset(Dataset):
-    def __init__(self, root_dir, train=True, test_split=.8, transform=None):
+    def __init__(self, root_dir, train=True, test_split=.8, transform=None, data_flags=None):
         '''
         Dataset class for HyperSim
         :param root_dir: the root directory of the dataset, which contains the uncompressed data
         :param train: train or test set
         :param test_split: percentage of dataset to use as test set [0, 1]
         :param transform: transform functions
+        :param data_flags: "concat" to additionally get image+seg concatenated, "onehot" for one-hot encoding of seg
         '''
         self.random_seed = 0
         self.root_dir = root_dir
         self.transform = transform
+        self.data_flags = data_flags
+
+        if self.data_flags is None:
+            self.data_flags = dict()
 
         random.seed(self.random_seed)
         np.random.seed()
@@ -121,12 +127,28 @@ class HyperSimDataset(Dataset):
             depth_np = np.array(depth["dataset"])
             seg_np = np.array(seg["dataset"])
 
-            if self.transform:
-                image_np = self.transform(image_np)
-                depth_np = self.transform(depth_np)
-                seg_np = self.transform(seg_np)
+        if self.transform:
+            image_np = self.transform(image_np)
+            depth_np = self.transform(depth_np)
+            seg_np = self.transform(seg_np)
 
-        return {"image": image_np, "depths": depth_np, "segs": seg_np}
+        if self.data_flags.get("onehot", False):
+            nr_classes = self.data_flags["seg_classes"]
+            # Create the identity matrix with size 40x40 (nr_classes)
+            identity_matrix = np.eye(nr_classes)
+            # Use broadcasting to assign the one-hot encoding to the appropriate axis
+            seg_np = identity_matrix[seg_np.reshape(-1) - 1].reshape(seg_np.shape + (nr_classes,))
+        else:
+            seg_np = np.expand_dims(seg_np, axis=-1)
+        if self.data_flags.get("concat", False):
+            image_np = np.concatenate((image_np, seg_np), axis=-1)
+
+        tt = ToTensor()
+        image_tensor = tt(image_np)
+        depth_tensor = tt(depth_np)
+        seg_tensor = tt(seg_np)
+
+        return {"image": image_tensor, "depths": depth_tensor, "segs": seg_tensor}
 
 
 def main():

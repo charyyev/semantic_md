@@ -1,16 +1,22 @@
 {
-    "model": "unet",
+    "model": "UEfficientNet",
     "date": "09-03-2023",
     "ver": 1,
     "note": "overfit",
-    "device": "cpu",
+    "device": "cuda",
     "resume_training": false,
     "resume_from": 0,
-    "experiments": "/home/sapar/experiments/",
+    "experiments": "/home/oliver/Documents/University/2023/ext-projects/semantic_md/experiments/",
     "data_location": "/home/oliver/Documents/University/2023/ext-projects/semantic_md/datasets/hypersim/decompressed",
+    "data_flags":
+    {
+        "seg_classes": 40,
+        "concat": true,
+        "onehot": false
+    },
     "train": 
     {
-        "batch_size": 4,
+        "batch_size": 1,
         "learning_rate": 0.003,
         "epochs": 100,
         "weight_decay": 0.0001,

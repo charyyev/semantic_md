@@ -2,6 +2,8 @@ import segmentation_models_pytorch as smp
 
 from models.unet import Unet
 
+# https://smp.readthedocs.io/en/latest/models.html#unet
+# https://smp.readthedocs.io/en/latest/encoders.html
 
 class ModelFactory:
     def __init__(self):
@@ -10,7 +12,7 @@ class ModelFactory:
         self.deepresnet_kwargs = dict(encoder_name="resnet50", encoder_weights="imagenet")
         self.deepefficientnet_kwargs = dict(encoder_name="efficientnet-b5", encoder_weights="imagenet")
 
-    def get_model(self, model_type: str, in_channels: int = 3, classes: int = 3):
+    def get_model(self, model_type: str, in_channels: int = 3, classes: int = 1):
         """
         Instantiates model from available pool
         :param model_type: can be one of ['Unet', 'UResNet', 'UEfficientNet', 'DeepLabResNet', 'DeepLabEfficientNet']

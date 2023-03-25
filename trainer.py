@@ -2,6 +2,7 @@ from datasets.nyu_dataset import NyuDataset
 from datasets.hypersim_dataset import HyperSimDataset
 from models.model_factory import ModelFactory
 
+import numpy as np
 from torch.utils.data import DataLoader
 from torch.utils.tensorboard import SummaryWriter
 from torchvision import transforms
@@ -27,12 +28,14 @@ class Trainer():
         # val_dataset = NyuDataset(self.config["val"]["data"], self.config["data_location"])
         # self.val_loader = DataLoader(val_dataset, shuffle=False, batch_size=self.config["val"]["batch_size"])
 
-        hypersim_root_dir = self.config["data"]
-        tf = transforms.ToTensor()
-        train_dataset = HyperSimDataset(root_dir=hypersim_root_dir, train=True, transform=tf)
+        dataset_root_dir = self.config["data_location"]
+
+        train_dataset = HyperSimDataset(root_dir=dataset_root_dir, train=True, transform=None,
+                                        data_flags=self.config["data_flags"])
         self.train_loader = DataLoader(train_dataset, shuffle=True, batch_size=self.config["train"]["batch_size"])
 
-        val_dataset = HyperSimDataset(root_dir=hypersim_root_dir, train=False, transform=tf)
+        val_dataset = HyperSimDataset(root_dir=dataset_root_dir, train=False, transform=None,
+                                      data_flags=self.config["data_flags"])
         self.val_loader = DataLoader(val_dataset, shuffle=False, batch_size=self.config["val"]["batch_size"])
 
     def build_model(self):
@@ -40,10 +43,19 @@ class Trainer():
         weight_decay = self.config["train"]["weight_decay"]
         lr_decay_at = self.config["train"]["lr_decay_at"]
 
-        self.model, self.tflags = ModelFactory().get_model('UResNet', in_channels=3, classes=1357)
+        in_channels = 3
+        if self.config["data_flags"]["concat"]:
+            if self.config["data_flags"]["onehot"]:
+                in_channels = 3 + self.config["data_flags"]["seg_classes"]
+            else:
+                in_channels = 4
+
+        self.model, self.tflags = ModelFactory().get_model(self.config["model"], in_channels=in_channels, classes=1)
         self.model.to(self.device)
 
-        self.loss = torch.nn.L1Loss()
+        # we have nan values in the target, therefore do not reduce and use self.nan_reduction instead
+        self.loss = torch.nn.L1Loss(reduction='none')
+        self.nan_reduction = torch.nanmean
         self.optimizer = torch.optim.Adam(self.model.parameters(), lr=learning_rate, weight_decay=weight_decay)
         self.scheduler = torch.optim.lr_scheduler.MultiStepLR(self.optimizer, milestones=lr_decay_at, gamma=0.1)
 
@@ -60,15 +72,15 @@ class Trainer():
 
             pred = self.model(image)
             loss = self.loss(pred, target)
+            loss = self.nan_reduction(loss)
 
             loss.backward()
             self.optimizer.step()
 
             total_loss += loss.item()
-
         self.writer.add_scalar("train_loss", total_loss / len(self.train_loader), epoch)
 
-        print("Epoch {}|Time {}|Training Loss: {:.5f}".format(
+        print("\nEpoch {} | Time {}| Training Loss: {:.5f}".format(
             epoch, time.time() - start_time, total_loss / len(self.train_loader)))
 
     def train(self):
@@ -114,7 +126,7 @@ class Trainer():
         self.model.train()
         self.writer.add_scalar("val_loss", total_loss / len(self.val_loader), epoch)
 
-        print("Epoch {}|Time {}|Validation Loss: {:.5f}".format(
+        print("\nEpoch {} | Time {} | Validation Loss: {:.5f}".format(
             epoch, time.time() - start_time, total_loss / len(self.val_loader)))
 
         if total_loss / len(self.val_loader) < self.prev_val_loss:

@@ -8,6 +8,12 @@
     "resume_from": 0,
     "experiments": "/home/sapar/experiments/",
     "data_location": "'/Users/oliverlemke/Documents/University/2023/ext-projects/semantic_md/datasets/hypersim/decompressed'",
+    "data_flags":
+    {
+        "seg_classes": 40,
+        "concat": true,
+        "onehot": true
+    },
     "train": 
     {
         "batch_size": 4,
