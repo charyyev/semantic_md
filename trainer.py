@@ -27,7 +27,7 @@ class Trainer():
         # val_dataset = NyuDataset(self.config["val"]["data"], self.config["data_location"])
         # self.val_loader = DataLoader(val_dataset, shuffle=False, batch_size=self.config["val"]["batch_size"])
 
-        hypersim_root_dir = '/Users/oliverlemke/Documents/University/2023/ext-projects/semantic_md/datasets/hypersim/decompressed'
+        hypersim_root_dir = self.config["data"]
         tf = transforms.ToTensor()
         train_dataset = HyperSimDataset(root_dir=hypersim_root_dir, train=True, transform=tf)
         self.train_loader = DataLoader(train_dataset, shuffle=True, batch_size=self.config["train"]["batch_size"])

@@ -7,7 +7,7 @@
     "resume_training": false,
     "resume_from": 0,
     "experiments": "/home/sapar/experiments/",
-    "data_location": "'/Users/oliverlemke/Documents/University/2023/ext-projects/semantic_md/datasets/hypersim/decompressed'",
+    "data_location": "/home/oliver/Documents/University/2023/ext-projects/semantic_md/datasets/hypersim/decompressed",
     "train": 
     {
         "batch_size": 4,
