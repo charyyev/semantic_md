@@ -1,11 +1,11 @@
+import json
 import numpy as np
-
 import vispy
-from vispy.scene import SceneCanvas
 from vispy import app
+from vispy.scene import SceneCanvas
 
 from datasets.hypersim_dataset import HyperSimDataset
-from datasets.nyu_dataset import NyuDataset
+from utils.config import args_and_config
 
 
 class Vis():
@@ -71,10 +71,12 @@ class Vis():
 
 
 if __name__ == "__main__":
-    dataset_root_dir = "/home/oliver/Documents/University/2023/ext-projects/semantic_md/datasets/hypersim/decompressed"
-    data_flags = dict(concat=True, onehot=False)
+    config = args_and_config()
 
-    dataset = HyperSimDataset(root_dir=dataset_root_dir, train=True, transform=None, data_flags=data_flags)
+    dataset_root_dir = config["root_dir"]
+    data_flags = config["data_flags"]
+
+    dataset = HyperSimDataset(root_dir=dataset_root_dir, train=False, transform=None, data_flags=data_flags)
 
     vis = Vis(dataset)
     vis.run()
