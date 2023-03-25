@@ -6,3 +6,4 @@ opencv-python~=4.7.0.72
 torchvision~=0.15.1
 vispy~=0.12.2
 segmentation-models-pytorch~=0.3.2
+tensorboard~=2.12.0
