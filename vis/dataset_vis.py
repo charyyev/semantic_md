@@ -1,17 +1,21 @@
 import json
 import numpy as np
+import torch
 import vispy
 from vispy import app
 from vispy.scene import SceneCanvas
 
 from datasets.hypersim_dataset import HyperSimDataset
+from models.model_factory import ModelFactory
 from utils.config import args_and_config
 
 
 class Vis():
-    def __init__(self, dataset):
+    def __init__(self, dataset, model, config):
         self.index = 0
         self.dataset = dataset
+        self.model = model
+        self.config = config
 
         self.canvas = SceneCanvas(keys='interactive',
                                   show=True,
@@ -27,14 +31,21 @@ class Vis():
 
     def update_image(self):
         data = self.dataset[self.index]
-        image = data["image"].permute((1, 2, 0))[:, :, :3]
+        image = torch.unsqueeze(data["image"], dim=0).to(self.config["device"])
         depths = data["depths"].squeeze().numpy()
 
-        image = image.numpy()
+        pred = self.model(image)
+        pred = torch.squeeze(pred).cpu().detach().numpy()
+
+        image = torch.squeeze(image)
+        image = image.permute((1, 2, 0)).cpu().detach().numpy()[:, :, :3]
         img_depths = (depths - np.nanmin(depths)) / np.nanmax(depths)
         img_depths = np.repeat(np.expand_dims(img_depths, axis=2), 3, axis=2)
+        img_preds = (pred - np.nanmin(pred)) / np.nanmax(pred)
+        img_preds = np.repeat(np.expand_dims(img_preds, axis=2), 3, axis=2)
 
-        img = np.concatenate((image, img_depths), 1)
+
+        img = np.concatenate((image, img_depths, img_preds), 1)
 
         self.canvas.title = str(self.index)
         self.image.set_data(img)
@@ -73,10 +84,24 @@ class Vis():
 if __name__ == "__main__":
     config = args_and_config()
 
-    dataset_root_dir = config["root_dir"]
+    dataset_root_dir = config["data_location"]
     data_flags = config["data_flags"]
 
     dataset = HyperSimDataset(root_dir=dataset_root_dir, train=False, transform=None, data_flags=data_flags)
 
-    vis = Vis(dataset)
+    model_path = config["load"]["path"]
+    in_channels = 3
+    if config["data_flags"]["concat"]:
+        if config["data_flags"]["onehot"]:
+            in_channels = 3 + config["data_flags"]["seg_classes"]
+        else:
+            in_channels = 4
+
+    model, tflags = ModelFactory().get_model(config["model"], in_channels=in_channels, classes=1)
+    model.to(config["device"])
+    checkpoint = torch.load(model_path)
+    model.load_state_dict(checkpoint)
+    model.eval()
+
+    vis = Vis(dataset, model, config)
     vis.run()

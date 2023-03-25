@@ -100,7 +100,7 @@ class Trainer():
             self.train_one_epoch(epoch)
 
             if epoch % self.config["train"]["save_every"] == 0:
-                path = os.path.join(self.checkpoints_dir, str(epoch) + "epoch")
+                path = os.path.join(self.checkpoints_dir, str(epoch) + "epoch.pth")
                 torch.save(self.model.state_dict(), path)
 
             if (epoch + 1) % self.config["val"]["val_every"] == 0:

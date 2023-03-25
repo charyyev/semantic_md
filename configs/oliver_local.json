@@ -47,5 +47,9 @@
             "limit_scale": [0.8, 1],
             "use": true
         }
+    },
+    "load":
+    {
+        "path": "/home/oliver/Documents/University/2023/ext-projects/semantic_md/experiments/UNet_overfit_2023-03-25_1/checkpoints/20epoch"
     }
 }
