@@ -1,4 +1,4 @@
-numpy~=1.24.2
+numpy~=1.19.5
 h5py~=3.8.0
 torch~=2.0.0
 tifffile~=2023.3.15
