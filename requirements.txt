@@ -1,0 +1,9 @@
+numpy
+h5py
+torch
+tifffile
+opencv-python
+torchvision
+vispy
+segmentation-models-pytorch
+tensorboard
