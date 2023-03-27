@@ -1,6 +1,12 @@
+# dataloader files
 from datasets.nyu_dataset import NyuDataset
 from datasets.hypersim_dataset import HyperSimDataset
+# model file
 from models.model_factory import ModelFactory
+#loss function file
+from utils.loss_functions import BerHuLoss
+# Evaluation metrics file
+from utils.eval_metrics import depth_metrics
 
 import numpy as np
 from torch.utils.data import DataLoader
@@ -11,6 +17,7 @@ import torch
 import os
 import time
 from tqdm import tqdm
+from collections import defaultdict
 
 
 class Trainer():
@@ -61,6 +68,7 @@ class Trainer():
 
     def train_one_epoch(self, epoch):
         total_loss = 0
+        total_metrics = defaultdict(float)
 
         start_time = time.time()
         self.model.train()
@@ -73,15 +81,26 @@ class Trainer():
             pred = self.model(image)
             loss = self.loss(pred, target)
             loss = self.nan_reduction(loss)
+            metrics = depth_metrics(pred, target)
 
             loss.backward()
             self.optimizer.step()
 
             total_loss += loss.item()
+            for k in metrics.keys():
+                total_metrics[k] += metrics[k]
         self.writer.add_scalar("train_loss", total_loss / len(self.train_loader), epoch)
+        self.writer.add_scalar("train_delta1", total_metrics["delta1"] / len(self.train_loader), epoch)
+        self.writer.add_scalar("train_delta2", total_metrics["delta2"] / len(self.train_loader), epoch)
+        self.writer.add_scalar("train_delta3", total_metrics["delta3"] / len(self.train_loader), epoch)
+        self.writer.add_scalar("train_abs_rel", total_metrics["abs_rel"] / len(self.train_loader), epoch)
+        self.writer.add_scalar("train_rmse", total_metrics["rmse"] / len(self.train_loader), epoch)
+        self.writer.add_scalar("train_log10", total_metrics["log10"] / len(self.train_loader), epoch)
 
         print("\nEpoch {} | Time {}| Training Loss: {:.5f}".format(
             epoch, time.time() - start_time, total_loss / len(self.train_loader)))
+        for k, v in total_metrics.items():
+            print(f"{k}: {v/len(self.train_loader):.5f}")
 
     def train(self):
         self.prepare_loaders()
@@ -110,6 +129,7 @@ class Trainer():
 
     def validate(self, epoch):
         total_loss = 0
+        total_metrics = defaultdict(float)
 
         start_time = time.time()
         self.model.eval()
@@ -120,14 +140,26 @@ class Trainer():
 
                 pred = self.model(image)
                 loss = self.loss(pred, target)
+                loss = self.nan_reduction(loss)
+                metrics = depth_metrics(pred, target)
 
                 total_loss += loss.item()
+                for k in metrics.keys():
+                    total_metrics[k] += metrics[k]
 
         self.model.train()
         self.writer.add_scalar("val_loss", total_loss / len(self.val_loader), epoch)
+        self.writer.add_scalar("val_delta1", total_metrics["delta1"] / len(self.train_loader), epoch)
+        self.writer.add_scalar("val_delta2", total_metrics["delta2"] / len(self.train_loader), epoch)
+        self.writer.add_scalar("val_delta3", total_metrics["delta3"] / len(self.train_loader), epoch)
+        self.writer.add_scalar("val_abs_rel", total_metrics["abs_rel"] / len(self.train_loader), epoch)
+        self.writer.add_scalar("val_rmse", total_metrics["rmse"] / len(self.train_loader), epoch)
+        self.writer.add_scalar("val_log10", total_metrics["log10"] / len(self.train_loader), epoch)
 
         print("\nEpoch {} | Time {} | Validation Loss: {:.5f}".format(
             epoch, time.time() - start_time, total_loss / len(self.val_loader)))
+        for k, v in total_metrics.items():
+            print(f"{k}: {v/len(self.train_loader):.5f}")
 
         if total_loss / len(self.val_loader) < self.prev_val_loss:
             self.prev_val_loss = total_loss / len(self.val_loader)
