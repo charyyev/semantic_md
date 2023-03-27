@@ -1,0 +1,55 @@
+{
+    "model": "UNet",
+    "date": "2023-03-27",
+    "ver": 1,
+    "note": "trial",
+    "device": "cuda",
+    "resume_training": false,
+    "resume_from": 0,
+    "experiments": "/cluster/project/infk/courses/252-0579-00L/group22_semanticMD/experiments",
+    "data_location": "/cluster/project/infk/courses/252-0579-00L/group22_semanticMD/HyperSim_Data",
+    "data_flags":
+    {
+        "seg_classes": 40,
+        "concat": false,
+        "onehot": false
+    },
+    "train": 
+    {
+        "batch_size": 8,
+        "learning_rate": 0.003,
+        "epochs": 100,
+        "weight_decay": 0.0001,
+        "lr_decay_at": [50, 250, 1000],
+        "save_every": 5,
+        "data": "/cluster/project/infk/courses/252-0579-00L/group22_semanticMD/semantic_md/datasets/hypersim/train_imgPath.txt"
+        
+    },
+    "val": 
+    {
+        "batch_size": 4,
+        "data": "/cluster/project/infk/courses/252-0579-00L/group22_semanticMD/semantic_md/datasets/hypersim/val_imgPath.txt",
+        "val_every": 1000
+    },
+    "augmentation":
+    {
+        "p": 0.3,
+        "rotation":
+        {
+            "limit_angle": 45,
+            "use": true
+        },
+        "affine":
+        {
+            "limit_angle": 20,
+            "limit_translation": 10,
+            "limit_shear": 10,
+            "limit_scale": [0.8, 1],
+            "use": true
+        }
+    },
+    "load":
+    {
+        "path": " "
+    }
+}

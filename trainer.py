@@ -30,13 +30,23 @@ class Trainer():
 
         dataset_root_dir = self.config["data_location"]
 
-        train_dataset = HyperSimDataset(root_dir=dataset_root_dir, train=True, transform=None,
+        #if using hypersim_dataset_v2 file
+        train_dataset = HyperSimDataset(root_dir=dataset_root_dir, train=True, file_path = self.config["train"]["data"], transform=None,
                                         data_flags=self.config["data_flags"])
         self.train_loader = DataLoader(train_dataset, shuffle=True, batch_size=self.config["train"]["batch_size"])
 
-        val_dataset = HyperSimDataset(root_dir=dataset_root_dir, train=False, transform=None,
+        val_dataset = HyperSimDataset(root_dir=dataset_root_dir, train=False, file_path = self.config["val"]["data"], transform=None,
                                       data_flags=self.config["data_flags"])
         self.val_loader = DataLoader(val_dataset, shuffle=False, batch_size=self.config["val"]["batch_size"])
+
+        # #if using hypersim_dataset file
+        # train_dataset = HyperSimDataset(root_dir=dataset_root_dir, train=True, transform=None,
+        #                                 data_flags=self.config["data_flags"])
+        # self.train_loader = DataLoader(train_dataset, shuffle=True, batch_size=self.config["train"]["batch_size"])
+
+        # val_dataset = HyperSimDataset(root_dir=dataset_root_dir, train=False, transform=None,
+        #                               data_flags=self.config["data_flags"])
+        # self.val_loader = DataLoader(val_dataset, shuffle=False, batch_size=self.config["val"]["batch_size"])
 
     def build_model(self):
         learning_rate = self.config["train"]["learning_rate"]
