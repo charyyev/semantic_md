@@ -1,6 +1,6 @@
 # dataloader files
 from datasets.nyu_dataset import NyuDataset
-from datasets.hypersim_dataset import HyperSimDataset
+from datasets.hypersim_dataset_v2 import HyperSimDataset
 # model file
 from models.model_factory import ModelFactory
 #loss function file
@@ -77,14 +77,15 @@ class Trainer():
         self.scheduler = torch.optim.lr_scheduler.MultiStepLR(self.optimizer, milestones=lr_decay_at, gamma=0.1)
 
     def train_one_epoch(self, epoch):
+        print("training epoch ", epoch)
         total_loss = 0
         total_metrics = defaultdict(float)
 
         start_time = time.time()
         self.model.train()
         for data in tqdm(self.train_loader):
-            image = data["image"].float().to(self.device)
-            target = data["depths"].float().to(self.device)
+            image = data["image"].to(self.device)
+            target = data["depths"].to(self.device)
 
             self.optimizer.zero_grad()
 
@@ -113,8 +114,11 @@ class Trainer():
             print(f"{k}: {v/len(self.train_loader):.5f}")
 
     def train(self):
+        print("preparing dataloaders...")
         self.prepare_loaders()
+        print("building model...")
         self.build_model()
+        print("creating experiment log directories...")
         self.make_experiments_dirs()
         self.writer = SummaryWriter(log_dir=self.runs_dir)
 
@@ -138,6 +142,7 @@ class Trainer():
             self.scheduler.step()
 
     def validate(self, epoch):
+        print("validation epoch ", epoch)
         total_loss = 0
         total_metrics = defaultdict(float)
 
