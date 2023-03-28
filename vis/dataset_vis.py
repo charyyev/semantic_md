@@ -2,6 +2,7 @@ import json
 import numpy as np
 import torch
 import vispy
+from torchvision.transforms import transforms
 from vispy import app
 from vispy.scene import SceneCanvas
 
@@ -86,8 +87,9 @@ if __name__ == "__main__":
 
     dataset_root_dir = config["data_location"]
     data_flags = config["data_flags"]
+    transform = transforms.ToTensor()
 
-    dataset = HyperSimDataset(root_dir=dataset_root_dir, train=False, transform=None, data_flags=data_flags)
+    dataset = HyperSimDataset(root_dir=dataset_root_dir, train=False, transform=transform, data_flags=data_flags)
 
     model_path = config["load"]["path"]
     in_channels = 3

@@ -1,6 +1,6 @@
 # dataloader files
 from datasets.nyu_dataset import NyuDataset
-from datasets.hypersim_dataset_v2 import HyperSimDataset
+from datasets.hypersim_dataset import HyperSimDataset
 # model file
 from models.model_factory import ModelFactory
 #loss function file
@@ -38,22 +38,22 @@ class Trainer():
         dataset_root_dir = self.config["data_location"]
 
         #if using hypersim_dataset_v2 file
-        train_dataset = HyperSimDataset(root_dir=dataset_root_dir, train=True, file_path = self.config["train"]["data"], transform=None,
+        # train_dataset = HyperSimDataset(root_dir=dataset_root_dir, train=True, file_path = self.config["train"]["data"], transform=None,
+        #                                 data_flags=self.config["data_flags"])
+        # self.train_loader = DataLoader(train_dataset, shuffle=True, batch_size=self.config["train"]["batch_size"])
+        #
+        # val_dataset = HyperSimDataset(root_dir=dataset_root_dir, train=False, file_path = self.config["val"]["data"], transform=None,
+        #                               data_flags=self.config["data_flags"])
+        # self.val_loader = DataLoader(val_dataset, shuffle=False, batch_size=self.config["val"]["batch_size"])
+
+        # #if using hypersim_dataset file
+        train_dataset = HyperSimDataset(root_dir=dataset_root_dir, train=True, transform=None,
                                         data_flags=self.config["data_flags"])
         self.train_loader = DataLoader(train_dataset, shuffle=True, batch_size=self.config["train"]["batch_size"])
 
-        val_dataset = HyperSimDataset(root_dir=dataset_root_dir, train=False, file_path = self.config["val"]["data"], transform=None,
+        val_dataset = HyperSimDataset(root_dir=dataset_root_dir, train=False, transform=None,
                                       data_flags=self.config["data_flags"])
         self.val_loader = DataLoader(val_dataset, shuffle=False, batch_size=self.config["val"]["batch_size"])
-
-        # #if using hypersim_dataset file
-        # train_dataset = HyperSimDataset(root_dir=dataset_root_dir, train=True, transform=None,
-        #                                 data_flags=self.config["data_flags"])
-        # self.train_loader = DataLoader(train_dataset, shuffle=True, batch_size=self.config["train"]["batch_size"])
-
-        # val_dataset = HyperSimDataset(root_dir=dataset_root_dir, train=False, transform=None,
-        #                               data_flags=self.config["data_flags"])
-        # self.val_loader = DataLoader(val_dataset, shuffle=False, batch_size=self.config["val"]["batch_size"])
 
     def build_model(self):
         learning_rate = self.config["train"]["learning_rate"]
@@ -72,6 +72,7 @@ class Trainer():
 
         # we have nan values in the target, therefore do not reduce and use self.nan_reduction instead
         self.loss = torch.nn.L1Loss(reduction='none')
+        # self.loss = torch.nn.SmoothL1Loss(reduction='none')
         self.nan_reduction = torch.nanmean
         self.optimizer = torch.optim.Adam(self.model.parameters(), lr=learning_rate, weight_decay=weight_decay)
         self.scheduler = torch.optim.lr_scheduler.MultiStepLR(self.optimizer, milestones=lr_decay_at, gamma=0.1)
@@ -93,6 +94,8 @@ class Trainer():
             loss = self.loss(pred, target)
             loss = self.nan_reduction(loss)
             metrics = depth_metrics(pred, target)
+
+            # print(loss.item())
 
             loss.backward()
             self.optimizer.step()
@@ -158,9 +161,11 @@ class Trainer():
                 loss = self.nan_reduction(loss)
                 metrics = depth_metrics(pred, target)
 
+                # print(loss.item())
                 total_loss += loss.item()
                 for k in metrics.keys():
                     total_metrics[k] += metrics[k]
+
 
         self.model.train()
         self.writer.add_scalar("val_loss", total_loss / len(self.val_loader), epoch)

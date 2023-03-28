@@ -2,7 +2,7 @@ import os
 import numpy as np
 import torch
 from torch.utils.data import Dataset, DataLoader
-from torchvision.transforms import ToTensor
+from torchvision.transforms import ToTensor, transforms
 import h5py
 import re
 import random
@@ -131,29 +131,27 @@ class HyperSimDataset(Dataset):
             seg_np = np.array(seg["dataset"])
 
         if self.transform:
-            image_np = self.transform(image_np)
-            depth_np = self.transform(depth_np)
-            seg_np = self.transform(seg_np)
+            transform = self.transform
+        else:
+            transform = transforms.ToTensor()
 
-        tt = ToTensor()
-        image_only = tt(image_np.copy())
+        image_tensor = transform(image_np).float()
+        depth_tensor = transform(depth_np).float()
+        seg_tensor = transform(seg_np).float()
 
         if self.data_flags.get("onehot", False):
             nr_classes = self.data_flags["seg_classes"]
-            # Create the identity matrix with size 40x40 (nr_classes)
-            identity_matrix = np.eye(nr_classes)
-            # Use broadcasting to assign the one-hot encoding to the appropriate axis
-            seg_np = identity_matrix[seg_np.reshape(-1) - 1].reshape(seg_np.shape + (nr_classes,))
+            identity_matrix = torch.eye(nr_classes).to(seg_tensor.device)
+            seg_tensor = identity_matrix[seg_tensor.reshape(-1) - 1].reshape(seg_tensor.shape + (nr_classes,))
         else:
-            seg_np = np.expand_dims(seg_np, axis=-1)
+            seg_tensor = seg_tensor.unsqueeze(-1)
+
         if self.data_flags.get("concat", False):
-            image_np = np.concatenate((image_np, seg_np), axis=-1)
+            data_tensor = torch.cat((image_tensor, seg_tensor), dim=-1)
+        else:
+            data_tensor = image_tensor.clone()
 
-        image_tensor = tt(image_np)
-        depth_tensor = tt(depth_np)
-        seg_tensor = tt(seg_np)
-
-        return {"image": image_tensor, "depths": depth_tensor, "segs": seg_tensor, "image_only": image_only}
+        return {"data": data_tensor, "image": image_tensor, "depths": depth_tensor, "segs": seg_tensor}
 
 
 def main():
@@ -161,7 +159,7 @@ def main():
     root_dir = os.path.dirname(current_path)
     dataset_root_dir = os.path.join(root_dir, 'hypersim', 'decompressed')
 
-    transform = None
+    transform = transforms.ToTensor()
 
     dataset = HyperSimDataset(root_dir=dataset_root_dir, transform=transform)
     dataloader = DataLoader(dataset, batch_size=4, shuffle=True, num_workers=4)

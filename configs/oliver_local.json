@@ -1,6 +1,6 @@
 {
-    "model": "UNet",
-    "date": "2023-03-25",
+    "model": "UEfficientNet",
+    "date": "2023-03-28",
     "ver": 1,
     "note": "overfit",
     "device": "cuda",
@@ -11,12 +11,12 @@
     "data_flags":
     {
         "seg_classes": 40,
-        "concat": true,
+        "concat": false,
         "onehot": false
     },
     "train": 
     {
-        "batch_size": 8,
+        "batch_size": 1,
         "learning_rate": 0.003,
         "epochs": 100,
         "weight_decay": 0.0001,
@@ -50,6 +50,6 @@
     },
     "load":
     {
-        "path": "/home/oliver/Documents/University/2023/ext-projects/semantic_md/experiments/UNet_overfit_2023-03-25_1/checkpoints/20epoch"
+        "path": "/home/oliver/Documents/University/2023/ext-projects/semantic_md/experiments/UEfficientNet_overfit_2023-03-26_1/checkpoints/85epoch.pth"
     }
 }
