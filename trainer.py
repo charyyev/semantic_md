@@ -1,9 +1,9 @@
 # dataloader files
 from datasets.nyu_dataset import NyuDataset
-from datasets.hypersim_dataset import HyperSimDataset
+from datasets import hypersim_dataset as hypersim_dataset
 # model file
 from models.model_factory import ModelFactory
-#loss function file
+# loss function file
 from utils.loss_functions import BerHuLoss
 # Evaluation metrics file
 from utils.eval_metrics import depth_metrics
@@ -36,8 +36,12 @@ class Trainer():
         # self.val_loader = DataLoader(val_dataset, shuffle=False, batch_size=self.config["val"]["batch_size"])
 
         dataset_root_dir = self.config["data_location"]
+        mean, std = hypersim_dataset.get_normalizers(train=True)
+        image_transform = transforms.Compose([transforms.ToTensor(), transforms.Normalize(mean=mean, std=std)])
+        depth_transform = transforms.Compose([transforms.ToTensor()])
+        seg_transform = transforms.Compose([transforms.ToTensor()])
 
-        #if using hypersim_dataset_v2 file
+        # if using hypersim_dataset_v2 file
         # train_dataset = HyperSimDataset(root_dir=dataset_root_dir, train=True, file_path = self.config["train"]["data"], transform=None,
         #                                 data_flags=self.config["data_flags"])
         # self.train_loader = DataLoader(train_dataset, shuffle=True, batch_size=self.config["train"]["batch_size"])
@@ -47,12 +51,16 @@ class Trainer():
         # self.val_loader = DataLoader(val_dataset, shuffle=False, batch_size=self.config["val"]["batch_size"])
 
         # #if using hypersim_dataset file
-        train_dataset = HyperSimDataset(root_dir=dataset_root_dir, train=True, transform=None,
-                                        data_flags=self.config["data_flags"])
+        train_dataset = hypersim_dataset.HyperSimDataset(root_dir=dataset_root_dir, train=True,
+                                                         image_transform=image_transform,
+                                                         depth_transform=depth_transform, seg_transform=seg_transform,
+                                                         data_flags=self.config["data_flags"])
         self.train_loader = DataLoader(train_dataset, shuffle=True, batch_size=self.config["train"]["batch_size"])
 
-        val_dataset = HyperSimDataset(root_dir=dataset_root_dir, train=False, transform=None,
-                                      data_flags=self.config["data_flags"])
+        val_dataset = hypersim_dataset.HyperSimDataset(root_dir=dataset_root_dir, train=False,
+                                                       image_transform=image_transform,
+                                                       depth_transform=depth_transform, seg_transform=seg_transform,
+                                                       data_flags=self.config["data_flags"])
         self.val_loader = DataLoader(val_dataset, shuffle=False, batch_size=self.config["val"]["batch_size"])
 
     def build_model(self):
@@ -114,7 +122,7 @@ class Trainer():
         print("\nEpoch {} | Time {}| Training Loss: {:.5f}".format(
             epoch, time.time() - start_time, total_loss / len(self.train_loader)))
         for k, v in total_metrics.items():
-            print(f"{k}: {v/len(self.train_loader):.5f}")
+            print(f"{k}: {v / len(self.train_loader):.5f}")
 
     def train(self):
         print("preparing dataloaders...")
@@ -166,7 +174,6 @@ class Trainer():
                 for k in metrics.keys():
                     total_metrics[k] += metrics[k]
 
-
         self.model.train()
         self.writer.add_scalar("val_loss", total_loss / len(self.val_loader), epoch)
         self.writer.add_scalar("val_delta1", total_metrics["delta1"] / len(self.train_loader), epoch)
@@ -179,7 +186,7 @@ class Trainer():
         print("\nEpoch {} | Time {} | Validation Loss: {:.5f}".format(
             epoch, time.time() - start_time, total_loss / len(self.val_loader)))
         for k, v in total_metrics.items():
-            print(f"{k}: {v/len(self.train_loader):.5f}")
+            print(f"{k}: {v / len(self.train_loader):.5f}")
 
         if total_loss / len(self.val_loader) < self.prev_val_loss:
             self.prev_val_loss = total_loss / len(self.val_loader)

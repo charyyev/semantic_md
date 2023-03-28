@@ -36,7 +36,8 @@ hypersim
 
 
 class HyperSimDataset(Dataset):
-    def __init__(self, root_dir, train=True, test_split=.8, transform=None, data_flags=None):
+    def __init__(self, root_dir, train=True, test_split=.8, image_transform=None, depth_transform=None,
+                 seg_transform=None, data_flags=None):
         '''
         Dataset class for HyperSim
         :param root_dir: the root directory of the dataset, which contains the uncompressed data
@@ -47,8 +48,17 @@ class HyperSimDataset(Dataset):
         '''
         self.random_seed = 0
         self.root_dir = root_dir
-        self.transform = transform
+        self.image_transform = image_transform
+        self.depth_transform = depth_transform
+        self.seg_transform = seg_transform
         self.data_flags = data_flags
+
+        if self.image_transform is None:
+            self.image_transform = transforms.ToTensor()
+        if self.depth_transform is None:
+            self.depth_transform = transforms.ToTensor()
+        if self.seg_transform is None:
+            self.seg_transform = transforms.ToTensor()
 
         if self.data_flags is None:
             self.data_flags = dict()
@@ -94,7 +104,8 @@ class HyperSimDataset(Dataset):
 
             current_image_paths = [os.path.join(current_image_path, path + '.color.hdf5') for path in image_paths]
             self.image_paths += current_image_paths
-            current_depth_paths = [os.path.join(current_label_path, path + '.depth_meters.hdf5') for path in image_paths]
+            current_depth_paths = [os.path.join(current_label_path, path + '.depth_meters.hdf5') for path in
+                                   image_paths]
             self.depth_paths += current_depth_paths
             current_seg_paths = [os.path.join(current_label_path, path + '.semantic.hdf5') for path in image_paths]
             self.seg_paths += current_seg_paths
@@ -130,14 +141,9 @@ class HyperSimDataset(Dataset):
             depth_np = np.array(depth["dataset"])
             seg_np = np.array(seg["dataset"])
 
-        if self.transform:
-            transform = self.transform
-        else:
-            transform = transforms.ToTensor()
-
-        image_tensor = transform(image_np).float()
-        depth_tensor = transform(depth_np).float()
-        seg_tensor = transform(seg_np).float()
+        image_tensor = self.image_transform(image_np).float()
+        depth_tensor = self.depth_transform(depth_np).float()
+        seg_tensor = self.seg_transform(seg_np).float()
 
         if self.data_flags.get("onehot", False):
             nr_classes = self.data_flags["seg_classes"]
@@ -152,6 +158,16 @@ class HyperSimDataset(Dataset):
             data_tensor = image_tensor.clone()
 
         return {"data": data_tensor, "image": image_tensor, "depths": depth_tensor, "segs": seg_tensor}
+
+
+def get_normalizers(train):
+    if train:
+        mean = [0.54769395, 0.58236081, 0.60076967]
+        std = [0.82304566, 0.81471774, 0.75490005]
+    else:
+        mean = [0.4782557, 0.51865845, 0.55664124]
+        std = [0.45305834, 0.45386348, 0.42803378]
+    return mean, std
 
 
 def main():

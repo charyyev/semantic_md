@@ -6,6 +6,7 @@ from torchvision.transforms import transforms
 from vispy import app
 from vispy.scene import SceneCanvas
 
+from datasets import hypersim_dataset
 from datasets.hypersim_dataset import HyperSimDataset
 from models.model_factory import ModelFactory
 from utils.config import args_and_config
@@ -44,7 +45,6 @@ class Vis():
         img_depths = np.repeat(np.expand_dims(img_depths, axis=2), 3, axis=2)
         img_preds = (pred - np.nanmin(pred)) / np.nanmax(pred)
         img_preds = np.repeat(np.expand_dims(img_preds, axis=2), 3, axis=2)
-
 
         img = np.concatenate((image, img_depths, img_preds), 1)
 
@@ -87,9 +87,15 @@ if __name__ == "__main__":
 
     dataset_root_dir = config["data_location"]
     data_flags = config["data_flags"]
-    transform = transforms.ToTensor()
 
-    dataset = HyperSimDataset(root_dir=dataset_root_dir, train=False, transform=transform, data_flags=data_flags)
+    mean, std = hypersim_dataset.get_normalizers(train=True)
+    image_transform = transforms.Compose([transforms.ToTensor(), transforms.Normalize(mean=mean, std=std)])
+    depth_transform = transforms.Compose([transforms.ToTensor()])
+    seg_transform = transforms.Compose([transforms.ToTensor()])
+    dataset = hypersim_dataset.HyperSimDataset(root_dir=dataset_root_dir, train=False,
+                                               image_transform=image_transform,
+                                               depth_transform=depth_transform, seg_transform=seg_transform,
+                                               data_flags=config["data_flags"])
 
     model_path = config["load"]["path"]
     in_channels = 3
