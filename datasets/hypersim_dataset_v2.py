@@ -135,6 +135,10 @@ class HyperSimDataset(Dataset):
 
         return {"data": data_tensor, "image": image_tensor, "depths": depth_tensor, "segs": seg_tensor}
 
+def get_normalizers(train):
+    mean = [0.47971886, 0.4922313,  0.48988785]
+    std = [0.93493607, 0.98621711, 0.9890384]
+    return mean, std
 
 def main():
 
