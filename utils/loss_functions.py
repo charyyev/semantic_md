@@ -43,9 +43,9 @@ class BerHuLoss(nn.Module):
         loss = torch.zeros_like(diff)
         mask = diff <= c
         loss[mask] = diff[mask]
-        loss[~mask] = (diff[~mask] ** 2 + c * +2) / (2 * c)
+        loss[~mask] = (diff[~mask] ** 2 + c ** 2) / (2 * c)
 
-        return loss.mean()
+        return loss
 
 
 def test():
@@ -60,7 +60,9 @@ def test():
         [[5.0, 6.0], [7.0, 8.0]],
         [[9.0, 10.0], [11.0, 12.0]]
     ])
+    y_true[y_true == 2.0] = float('nan')
     print(y_pred.size())
+    print(y_true)
 
     # instantiate your custom loss function
     criterion = BerHuLoss()
