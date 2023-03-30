@@ -2,6 +2,7 @@ import os
 import numpy as np
 import torch
 from torch.utils.data import Dataset, DataLoader
+from utils.config import args_and_config
 from torchvision.transforms import ToTensor, transforms
 import h5py
 import re
@@ -102,6 +103,13 @@ class HyperSimDataset(Dataset):
         self.seg_paths = np.array(self.seg_paths)
         self.paths = np.column_stack((self.image_paths, self.depth_paths, self.seg_paths))
 
+        # Print images with infinity values, TODO: delete
+        for image_path in self.image_paths:
+            with h5py.File(image_path, 'r') as image:
+                image_np = np.array(image['dataset'])
+                if np.isinf(image_np).any():
+                    print(image_path)
+
         self.length = self.paths.shape[0]
 
     def __len__(self):
@@ -141,36 +149,9 @@ def get_normalizers(train):
     return mean, std
 
 def main():
-
-    dataset_root_dir = "/cluster/project/infk/courses/252-0579-00L/group22_semanticMD/HyperSim_Data"
-    test_file_path = "/cluster/project/infk/courses/252-0579-00L/group22_semanticMD/semantic_md/datasets/hypersim/test_imgPath.txt"
-
-    transform = None
-
-    dataset = HyperSimDataset(root_dir=dataset_root_dir, file_path=test_file_path, transform=transform)
-    dataloader = DataLoader(dataset, batch_size=4, shuffle=True, num_workers=4)
-
-    for i, batch in enumerate(dataloader):
-        images, depth, seg = batch["image"], batch["depths"], batch["segs"]
-        print(images.size(), depth.size(), seg.size(), sep='\n', end='\n\n')
-
-        # Display the images, depth maps, and segmentation maps in separate subplots
-        for idx in range(images.size(0)):
-            plt.figure(figsize=(15, 5))
-            plt.subplot(1, 3, 1)
-            plt.imshow(images[idx].permute(1, 2, 0))
-            plt.title('Image')
-
-            plt.subplot(1, 3, 2)
-            plt.imshow(depth[idx].squeeze(), cmap='viridis')
-            plt.title('Depth Map')
-
-            plt.subplot(1, 3, 3)
-            plt.imshow(seg[idx].squeeze(), cmap='tab20')
-            plt.title('Segmentation Map')
-
-            plt.show()
-            exit(0)
+    config = args_and_config()
+    dataset_root_dir = config["data_location"]
+    dataset = HyperSimDataset(root_dir=dataset_root_dir, train=True, file_path=config["train"]["data"])
 
 
 if __name__ == '__main__':
