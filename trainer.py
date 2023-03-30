@@ -25,6 +25,7 @@ class Trainer():
         self.config = config
         self.device = config["device"]
         self.prev_val_loss = 1e6
+        self.epsilon = 1e-18
 
     def prepare_loaders(self):
         aug_config = self.config["augmentation"]
@@ -79,8 +80,9 @@ class Trainer():
         self.model.to(self.device)
 
         # we have nan values in the target, therefore do not reduce and use self.nan_reduction instead
-        self.loss = torch.nn.L1Loss(reduction='none')
+        # self.loss = torch.nn.L1Loss(reduction='none')
         # self.loss = torch.nn.SmoothL1Loss(reduction='none')
+        self.loss = BerHuLoss(contains_nan=True)
         self.nan_reduction = torch.nanmean
         self.optimizer = torch.optim.Adam(self.model.parameters(), lr=learning_rate, weight_decay=weight_decay)
         self.scheduler = torch.optim.lr_scheduler.MultiStepLR(self.optimizer, milestones=lr_decay_at, gamma=0.1)
@@ -100,6 +102,8 @@ class Trainer():
             self.optimizer.zero_grad()
 
             pred = self.model(image)
+            # clamp values to >0
+            pred = torch.clamp(pred, min=self.epsilon, max=None)
             loss = self.loss(pred, target)
             loss = self.nan_reduction(loss)
             metrics = depth_metrics(pred, target)

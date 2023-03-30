@@ -26,10 +26,16 @@ class BerHuLoss(nn.Module):
     https://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=7785097
     """
 
-    def __init__(self):
+    def __init__(self, contains_nan=True):
         super(BerHuLoss, self).__init__()
+        self.contains_nan = contains_nan
 
     def forward(self, y_pred, y_true):
+        if self.contains_nan:
+            mask = (~torch.isnan(y_pred)) & (~torch.isnan(y_true))
+            y_pred = torch.masked_select(y_pred, mask)
+            y_true = torch.masked_select(y_true, mask)
+
         diff = torch.abs(y_pred - y_true)
         c = .2 * torch.max(diff)
 
