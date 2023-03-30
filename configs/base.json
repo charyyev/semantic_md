@@ -6,7 +6,7 @@
     "device": "cpu",
     "resume_training": false,
     "resume_from": 0,
-    "experiments": "/home/sapar/experiments/",
+    "experiments": "/Users/oliverlemke/Documents/University/2023/ext-projects/semantic_md/experiments/",
     "data_location": "'/Users/oliverlemke/Documents/University/2023/ext-projects/semantic_md/datasets/hypersim/decompressed'",
     "data_flags":
     {

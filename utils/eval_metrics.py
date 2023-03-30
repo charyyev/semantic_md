@@ -7,9 +7,9 @@ def depth_metrics(pred, target):
 
     # accuracy with threshold t = 1.25, 1.25^2, 1.25^3
     thresh = torch.max((target / pred), (pred / target))
-    delta1 = torch.mean(thresh < 1.25)
-    delta2 = torch.mean(thresh < 1.25 ** 2)
-    delta3 = torch.mean(thresh < 1.25 ** 3)
+    delta1 = torch.mean((thresh < 1.25).float())
+    delta2 = torch.mean((thresh < 1.25 ** 2).float())
+    delta3 = torch.mean((thresh < 1.25 ** 3).float())
 
     # mean absolute relative error, mean squared relative error, root mean squared error, rsme log, log10 error
     diff = pred - target

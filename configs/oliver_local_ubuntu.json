@@ -3,7 +3,7 @@
     "date": "2023-03-28",
     "ver": 1,
     "note": "overfit",
-    "device": "cuda",
+    "device": "cpu",
     "resume_training": false,
     "resume_from": 0,
     "experiments": "/home/oliver/Documents/University/2023/ext-projects/semantic_md/experiments/",

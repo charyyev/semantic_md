@@ -93,6 +93,7 @@ class Trainer():
         start_time = time.time()
         self.model.train()
         for data in tqdm(self.train_loader):
+        # for data in list(tqdm(self.train_loader))[:1]:
             image = data["image"].to(self.device)
             target = data["depths"].to(self.device)
 
