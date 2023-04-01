@@ -2,7 +2,8 @@ import torch
 import numpy as np
 
 
-def depth_metrics(pred, target):
+def depth_metrics(pred, target, epsilon):
+    pred = torch.clamp(pred, min=epsilon, max=None)
     assert pred.shape == target.shape
 
     # accuracy with threshold t = 1.25, 1.25^2, 1.25^3

@@ -105,7 +105,6 @@ class Trainer():
 
             pred = self.model(image)
             # clamp values to >0
-            pred = torch.clamp(pred, min=self.epsilon, max=None)
             loss = self.loss(pred, target)
             loss = self.nan_reduction(loss)
             metrics = depth_metrics(pred, target)
