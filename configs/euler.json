@@ -6,6 +6,7 @@
     "device": "cuda",
     "resume_training": false,
     "resume_from": 0,
+    "root_dir": "/cluster/project/infk/courses/252-0579-00L/group22_semanticMD/",
     "experiments": "/cluster/project/infk/courses/252-0579-00L/group22_semanticMD/experiments",
     "data_location": "/cluster/project/infk/courses/252-0579-00L/group22_semanticMD/HyperSim_Data",
     "data_flags":
