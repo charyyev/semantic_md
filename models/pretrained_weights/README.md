@@ -9,6 +9,3 @@ Load weights to network via:
 This is an object that contains meta information regarding the weights. To load it, do
         with open("/path/to/object.pickle", "rb") as file:
             pickled = pickle.load(file).DEFAULT
-
-To access transformations use:
-            pickled.transforms()

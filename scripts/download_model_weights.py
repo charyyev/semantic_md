@@ -1,25 +1,18 @@
 import os
 import pickle
 import torch
-from torchvision import models
+import timm
 import urllib
 
 from utils.config import args_and_config
 
-_WEIGHT_PATHS = [
-    ("resnet34", models.resnet34, models.ResNet34_Weights, "https://download.pytorch.org/models/resnet34-b627a593.pth"),
-    ("resnet50", models.resnet50, models.ResNet50_Weights, "https://download.pytorch.org/models/resnet50-0676ba61.pth"),
-    ("efficientnet_b4", models.efficientnet_b4, models.EfficientNet_B4_Weights,
-     "https://download.pytorch.org/models/efficientnet_b4_rwightman-7eb33cd5.pth"),
-    ("efficientnet_b5", models.efficientnet_b5, models.EfficientNet_B5_Weights,
-     "https://download.pytorch.org/models/efficientnet_b5_lukemelas-b6417697.pth"),
-]
+_MODEL_NAMES = ["resnet34", "resnet50", "efficientnet_b2", "efficientnet_b3", "efficientnet_b4"]
 
 
 def test(pretrained_weights_path):
-    for name, model_type, _, _ in _WEIGHT_PATHS:
+    for name in _MODEL_NAMES:
         weights_path = os.path.join(pretrained_weights_path, name, "weights.pth")
-        model = model_type(weights=None)
+        model = timm.create_model(name, pretrained=False)
 
         weights_dict = torch.load(weights_path)
         model.load_state_dict(weights_dict)
@@ -42,19 +35,23 @@ def download(pretrained_weights_path, download_from_link):
     if not os.path.isdir(pretrained_weights_path):
         raise FileExistsError(f'{pretrained_weights_path} does not exist.')
 
-    for name, model_type, weights, download_link in _WEIGHT_PATHS:
+    for name in _MODEL_NAMES:
         current_dir = os.path.join(pretrained_weights_path, name)
         os.makedirs(current_dir, exist_ok=True)
 
-        with open(os.path.join(current_dir, "weights_object.pickle"), "wb") as file:
-            pickle.dump(weights, file)
-
         current_weights_path = os.path.join(current_dir, "weights.pth")
         if download_from_link:
+            model = timm.create_model(name, pretrained=False)
+            download_link = model.pretrained_cfg["url"]
             urllib.request.urlretrieve(download_link, current_weights_path)
         else:
-            model = model_type(weights=weights)
+            model = timm.create_model(name, pretrained=True)
             torch.save(model.state_dict(), current_weights_path)
+
+        metadata = model.pretrained_cfg
+        with open(os.path.join(current_dir, "weights_object.pickle"), "wb") as file:
+            pickle.dump(metadata, file)
+
 
 
 def main(download_from_link=False):
@@ -65,4 +62,4 @@ def main(download_from_link=False):
 
 
 if __name__ == '__main__':
-    main(download_from_link=False)
+    main(download_from_link=True)

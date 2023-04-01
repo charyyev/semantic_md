@@ -1,39 +1,62 @@
+import os
+import pickle
+
 import segmentation_models_pytorch as smp
+import torch
 
 from models.unet import Unet
+
 
 # https://smp.readthedocs.io/en/latest/models.html#unet
 # https://smp.readthedocs.io/en/latest/encoders.html
 
 class ModelFactory:
     def __init__(self):
-        self.uresnet_kwargs = dict(encoder_name="resnet50", encoder_weights="imagenet")
-        self.uefficientnet_kwargs = dict(encoder_name="efficientnet-b5", encoder_weights="imagenet")
-        self.deepresnet_kwargs = dict(encoder_name="resnet50", encoder_weights="imagenet")
-        self.deepefficientnet_kwargs = dict(encoder_name="efficientnet-b5", encoder_weights="imagenet")
+        self.models = dict(
+            # unet=(Unet, {}, "unet"),
+            uresnet34=(smp.Unet, {"encoder_name": "tu-resnet34", "encoder_weights": None}, "resnet34"),
+            uresnet50=(smp.Unet, {"encoder_name": "tu-resnet50", "encoder_weights": None}, "resnet50"),
+            uefficientnet_b2=(
+                smp.Unet, {"encoder_name": "tu-efficientnet-b2", "encoder_weights": None}, "efficientnet_b2"),
+            uefficientnet_b3=(
+                smp.Unet, {"encoder_name": "tu-efficientnet_b3", "encoder_weights": None}, "efficientnet_b3"),
+            uefficientnet_b4=(
+                smp.Unet, {"encoder_name": "tu-efficientnet-b4", "encoder_weights": None}, "efficientnet_b4"),
+            deepresnet34=({"encoder_name": "tu-resnet34", "encoder_weights": None}, "resnet34"),
+            deepresnet50=({"encoder_name": "tu-resnet50", "encoder_weights": None}, "resnet50"),
+            deepefficientnet_b2=(
+                smp.DeepLabV3, {"encoder_name": "tu-efficientnet-b2", "encoder_weights": None}, "efficientnet_b2"),
+            deepefficientnet_b3=(
+                smp.DeepLabV3, {"encoder_name": "tu-efficientnet-b3", "encoder_weights": None}, "efficientnet_b3"),
+            deepefficientnet_b4=(
+                smp.DeepLabV3, {"encoder_name": "tu-efficientnet-b4", "encoder_weights": None}, "efficientnet_b4"),
+        )
 
-    def get_model(self, model_type: str, in_channels: int = 3, classes: int = 1):
+    def get_model(self, model_type: str, pretrained_weights_path: str, in_channels: int = 3, classes: int = 1):
         """
         Instantiates model from available pool
-        :param model_type: can be one of ['Unet', 'UResNet', 'UEfficientNet', 'DeepLabResNet', 'DeepLabEfficientNet']
+        :param model_type: can be one of ['unet', 'uresnet34', 'uresnet50', 'uefficientnet_b2', 'uefficientnet_b3',
+        'uefficientnet_b4', 'uefficientnet_b5', 'deepresnet34', 'deepresnet50', 'deepefficientnet_b2',
+        'deepefficientnet_b3', 'deepefficientnet_b4', 'deepefficientnet_b5']
         :param in_channels: number of input channels for the initial layer
+        :param pretrained_weights_path: path where pretrained weights are stored
         :param classes: number of classes to be predicted
-        :return: return the specified model (torch.nn.Module)
+        :return: return the specified model (torch.nn.Module), as well as the pretrained transforms
         """
-        # TODO: Check what each model was trained on (input range) and set flags accordingly
-        # TODO: possibly return flags as additional output for dataloader
 
-        if model_type == "UNet":
+        if model_type == "unet":
             model = Unet(in_c=in_channels)
-        elif model_type == "UResNet":
-            model = smp.Unet(**self.uresnet_kwargs, in_channels=in_channels, classes=classes)
-        elif model_type == "UEfficientNet":
-            model = smp.Unet(**self.uefficientnet_kwargs, in_channels=in_channels, classes=classes)
-        elif model_type == "DeepLabResNet":
-            model = smp.DeepLabV3Plus(**self.deepresnet_kwargs, in_channels=in_channels, classes=classes)
-        elif model_type == "DeepLabEfficientNet":
-            model = smp.DeepLabV3Plus(**self.deepefficientnet_kwargs, in_channels=in_channels, classes=classes)
         else:
-            raise ValueError(f"{model_type} is not a valid model_type.")
+            model_func, kwargs, name = self.models[model_type]
+            model = model_func(**kwargs, in_channels=in_channels, classes=classes)
 
-        return model, None  # None for now
+            metadata_path = os.path.join(pretrained_weights_path, name, "weights_object.pickle")
+            with open(metadata_path, "rb") as file:
+                pickled = pickle.load(file)
+                transforms = pickled
+            weights_path = os.path.join(pretrained_weights_path, name, "weights.pth")
+            weights_dict = torch.load(weights_path)
+            # we have additional weights in the saved weights (for classification and stuff), so we do strict = False
+            model.encoder.model.load_state_dict(weights_dict, strict=False)
+
+        return model, transforms

@@ -76,7 +76,9 @@ class Trainer():
             else:
                 in_channels = 4
 
-        self.model, self.tflags = ModelFactory().get_model(self.config["model"], in_channels=in_channels, classes=1)
+        pretrained_weights_path = os.path.join(self.config["root_dir"], "models", "pretrained_weights")
+        self.model, self.tflags = ModelFactory().get_model(self.config["model"], pretrained_weights_path,
+                                                           in_channels=in_channels, classes=1)
         self.model.to(self.device)
 
         # we have nan values in the target, therefore do not reduce and use self.nan_reduction instead
@@ -95,7 +97,7 @@ class Trainer():
         start_time = time.time()
         self.model.train()
         for data in tqdm(self.train_loader):
-        # for data in list(tqdm(self.train_loader))[:1]:
+            # for data in list(tqdm(self.train_loader))[:1]:
             image = data["image"].to(self.device)
             target = data["depths"].to(self.device)
 
