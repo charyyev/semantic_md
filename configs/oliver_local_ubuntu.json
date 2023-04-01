@@ -32,6 +32,10 @@
         "data": "/home/sapar/3dvision/data/list/val.txt",
         "val_every": 1000
     },
+    "transformations":
+    {
+        "resize": [768, 576]
+    },
     "augmentation":
     {
         "p": 0.3,

@@ -1,6 +1,8 @@
 # dataloader files
+import cv2
+
 from datasets.nyu_dataset import NyuDataset
-from datasets import hypersim_dataset as hypersim_dataset
+from datasets import hypersim_dataset
 # model file
 from models.model_factory import ModelFactory
 # loss function file
@@ -37,10 +39,7 @@ class Trainer():
         # self.val_loader = DataLoader(val_dataset, shuffle=False, batch_size=self.config["val"]["batch_size"])
 
         dataset_root_dir = self.config["data_location"]
-        mean, std = hypersim_dataset.get_normalizers(train=True)
-        image_transform = transforms.Compose([transforms.ToTensor(), transforms.Normalize(mean=mean, std=std)])
-        depth_transform = transforms.Compose([transforms.ToTensor()])
-        seg_transform = transforms.Compose([transforms.ToTensor()])
+        image_transform, depth_transform, seg_transform = self.compute_transforms()
 
         # if using hypersim_dataset_v2 file
         # train_dataset = HyperSimDataset(root_dir=dataset_root_dir, train=True, file_path = self.config["train"]["data"], transform=None,
@@ -77,8 +76,8 @@ class Trainer():
                 in_channels = 4
 
         pretrained_weights_path = os.path.join(self.config["root_dir"], "models", "pretrained_weights")
-        self.model, self.tflags = ModelFactory().get_model(self.config["model"], pretrained_weights_path,
-                                                           in_channels=in_channels, classes=1)
+        self.model, self.transform_config = ModelFactory().get_model(self.config["model"], pretrained_weights_path,
+                                                                     in_channels=in_channels, classes=1)
         self.model.to(self.device)
 
         # we have nan values in the target, therefore do not reduce and use self.nan_reduction instead
@@ -107,7 +106,7 @@ class Trainer():
             # clamp values to >0
             loss = self.loss(pred, target)
             loss = self.nan_reduction(loss)
-            metrics = depth_metrics(pred, target)
+            metrics = depth_metrics(pred, target, self.epsilon)
 
             # print(loss.item())
 
@@ -131,10 +130,10 @@ class Trainer():
             print(f"{k}: {v / len(self.train_loader):.5f}")
 
     def train(self):
-        print("preparing dataloaders...")
-        self.prepare_loaders()
         print("building model...")
         self.build_model()
+        print("preparing dataloaders...")
+        self.prepare_loaders()
         print("creating experiment log directories...")
         self.make_experiments_dirs()
         self.writer = SummaryWriter(log_dir=self.runs_dir)
@@ -217,3 +216,37 @@ class Trainer():
 
         if not os.path.exists(self.runs_dir):
             os.mkdir(self.runs_dir)
+
+    def compute_transforms(self):
+        tcfg = self.transform_config
+        mean, std = tcfg["mean"], tcfg["std"]
+        min_depth, max_depth = hypersim_dataset.depth_range()
+        new_size = self.config["transformations"]["resize"]
+
+        def resize(input_):
+            return cv2.resize(input_, new_size, interpolation=cv2.INTER_NEAREST)
+
+        base_transform = (
+            transforms.ToTensor(),
+        )
+
+        def image_transform(input_):
+            x = resize(input_)
+            tf = transforms.Compose([
+                *base_transform,
+                transforms.Normalize(mean, std)
+            ])
+            return tf(x)
+
+        def depth_transform(input_):
+            x = resize(input_)
+            x = (x - min_depth) / (max_depth - min_depth)
+            tf = transforms.Compose([*base_transform])
+            return tf(x)
+
+        def seg_transform(input_):
+            x = resize(input_)
+            tf = transforms.Compose([*base_transform])
+            return tf(x)
+
+        return image_transform, depth_transform, seg_transform

@@ -32,6 +32,10 @@
         "data": "/cluster/project/infk/courses/252-0579-00L/group22_semanticMD/semantic_md/datasets/hypersim/val_imgPath.txt",
         "val_every": 1000
     },
+    "transformations":
+    {
+        "resize": [768, 576]
+    },
     "augmentation":
     {
         "p": 0.3,
