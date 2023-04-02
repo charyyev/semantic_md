@@ -9,6 +9,8 @@ from models.model_factory import ModelFactory
 from utils.loss_functions import BerHuLoss
 # Evaluation metrics file
 from utils.eval_metrics import depth_metrics
+# Transformation
+from utils.transforms import compute_transforms
 
 import numpy as np
 from torch.utils.data import DataLoader
@@ -39,7 +41,8 @@ class Trainer():
         # self.val_loader = DataLoader(val_dataset, shuffle=False, batch_size=self.config["val"]["batch_size"])
 
         dataset_root_dir = self.config["data_location"]
-        image_transform, depth_transform, seg_transform = self.compute_transforms()
+        image_transform, depth_transform, seg_transform = compute_transforms(hypersim_dataset, self.transform_config,
+                                                                             self.config)
 
         # if using hypersim_dataset_v2 file
         # train_dataset = HyperSimDataset(root_dir=dataset_root_dir, train=True, file_path = self.config["train"]["data"], transform=None,
@@ -216,37 +219,3 @@ class Trainer():
 
         if not os.path.exists(self.runs_dir):
             os.mkdir(self.runs_dir)
-
-    def compute_transforms(self):
-        tcfg = self.transform_config
-        mean, std = tcfg["mean"], tcfg["std"]
-        min_depth, max_depth = hypersim_dataset.depth_range()
-        new_size = self.config["transformations"]["resize"]
-
-        def resize(input_):
-            return cv2.resize(input_, new_size, interpolation=cv2.INTER_NEAREST)
-
-        base_transform = (
-            transforms.ToTensor(),
-        )
-
-        def image_transform(input_):
-            x = resize(input_)
-            tf = transforms.Compose([
-                *base_transform,
-                transforms.Normalize(mean, std)
-            ])
-            return tf(x)
-
-        def depth_transform(input_):
-            x = resize(input_)
-            x = (x - min_depth) / (max_depth - min_depth)
-            tf = transforms.Compose([*base_transform])
-            return tf(x)
-
-        def seg_transform(input_):
-            x = resize(input_)
-            tf = transforms.Compose([*base_transform])
-            return tf(x)
-
-        return image_transform, depth_transform, seg_transform

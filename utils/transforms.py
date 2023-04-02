@@ -1,8 +1,12 @@
+import cv2
 import numpy as np
 import torch
 import torchvision.transforms.functional as TF
 
-#compose several transformations
+# compose several transformations
+from torchvision.transforms import transforms
+
+
 class Compose(object):
     def __init__(self, transforms, p=1.0):
         self.transforms = transforms
@@ -13,6 +17,7 @@ class Compose(object):
             for t in self.transforms:
                 image, label = t(image, label)
         return image, label
+
 
 # select one of the transforms and apply
 class OneOf(object):
@@ -27,6 +32,7 @@ class OneOf(object):
 
         return image, label
 
+
 # apply random rotation with angle within limit_angle and with probability p
 class Random_Rotation(object):
     def __init__(self, limit_angle=20.):
@@ -38,6 +44,7 @@ class Random_Rotation(object):
         label = TF.rotate(label, angle)
 
         return image, label
+
 
 # apply affine transformation within provided limits
 class Affine(object):
@@ -54,7 +61,42 @@ class Affine(object):
         translate_x = np.random.randint(self.limit_translation)
         translate_y = np.random.randint(self.limit_translation)
         translate = [translate_x, translate_y]
-        image = TF.affine(image, angle, translate, scale, shear = shear_angle)
-        label = TF.affine(label, angle, translate, scale, shear = shear_angle)
-            
+        image = TF.affine(image, angle, translate, scale, shear=shear_angle)
+        label = TF.affine(label, angle, translate, scale, shear=shear_angle)
+
         return image, label
+
+
+def compute_transforms(dataset, transform_config, config):
+    tcfg = transform_config
+    mean, std = tcfg["mean"], tcfg["std"]
+    min_depth, max_depth = dataset.depth_range()
+    new_size = config["transformations"]["resize"]
+
+    def resize(input_):
+        return cv2.resize(input_, new_size, interpolation=cv2.INTER_NEAREST)
+
+    base_transform = (
+        transforms.ToTensor(),
+    )
+
+    def image_transform(input_):
+        x = resize(input_)
+        tf = transforms.Compose([
+            *base_transform,
+            transforms.Normalize(mean, std)
+        ])
+        return tf(x)
+
+    def depth_transform(input_):
+        x = resize(input_)
+        x = (x - min_depth) / (max_depth - min_depth)
+        tf = transforms.Compose([*base_transform])
+        return tf(x)
+
+    def seg_transform(input_):
+        x = resize(input_)
+        tf = transforms.Compose([*base_transform])
+        return tf(x)
+
+    return image_transform, depth_transform, seg_transform
