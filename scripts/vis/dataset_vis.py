@@ -1,27 +1,25 @@
-import json
 import numpy as np
-import torch
+
 import vispy
 from torchvision.transforms import transforms
-from vispy import app
 from vispy.scene import SceneCanvas
+from vispy import app
 
 from datasets import hypersim_dataset
-from datasets.hypersim_dataset import HyperSimDataset
-from models.model_factory import ModelFactory
+from datasets.nyu_dataset import NyuDataset
 from utils.config import args_and_config
+from matplotlib import cm
+import matplotlib.pyplot as plt
 
 
 class Vis():
-    def __init__(self, dataset, model, config):
+    def __init__(self, dataset):
         self.index = 0
         self.dataset = dataset
-        self.model = model
-        self.config = config
 
         self.canvas = SceneCanvas(keys='interactive',
                                   show=True,
-                                  size=(1280, 480))
+                                  size=(1280, 1280))
         self.canvas.events.key_press.connect(self._key_press)
         self.canvas.events.draw.connect(self._draw)
         self.canvas.show()
@@ -33,20 +31,32 @@ class Vis():
 
     def update_image(self):
         data = self.dataset[self.index]
-        image = torch.unsqueeze(data["image"], dim=0).to(self.config["device"])
+        image = data["image"].permute((1, 2, 0))
         depths = data["depths"].squeeze().numpy()
 
-        pred = self.model(image)
-        pred = torch.squeeze(pred).cpu().detach().numpy()
+        image = image.numpy()
+        img_depths = (depths - np.min(depths)) / np.max(depths)
+        img_depths = cm.viridis(img_depths)[:, :, :3]
+        norm = plt.Normalize(vmin=0, vmax=1)
+        sm = cm.ScalarMappable(cmap='viridis', norm=norm)
+        sm.set_array([])
 
-        image = torch.squeeze(image)
-        image = image.permute((1, 2, 0)).cpu().detach().numpy()[:, :, :3]
-        img_depths = (depths - np.nanmin(depths)) / np.nanmax(depths)
-        img_depths = np.repeat(np.expand_dims(img_depths, axis=2), 3, axis=2)
-        img_preds = (pred - np.nanmin(pred)) / np.nanmax(pred)
-        img_preds = np.repeat(np.expand_dims(img_preds, axis=2), 3, axis=2)
+        grid = (2, 3)  # nrows, ncols
+        fig, axes = plt.subplots(nrows=grid[0], ncols=grid[1], figsize=(25, 12))
+        for row in range(grid[0]):
+            for col in range(grid[1]):
+                axes[row, col].axis('off')
+        axes[0, 0].imshow(image)
+        axes[0, 1].imshow(img_depths)
+        cb = fig.colorbar(sm, ax=axes[0, 2], fraction=0.9, pad=0.04, shrink=.9, aspect=1.5, ticks=[0, 1])
+        cb.ax.tick_params(labelsize=25)
 
-        img = np.concatenate((image, img_depths, img_preds), 1)
+        plt.show()
+        renderer = fig.canvas.get_renderer()
+
+        # get the figure as a numpy ndarray
+        img = np.frombuffer(renderer.tostring_rgb(), dtype=np.uint8)
+        img = img.reshape(fig.canvas.get_width_height()[::-1] + (3,))
 
         self.canvas.title = str(self.index)
         self.image.set_data(img)
@@ -82,34 +92,21 @@ class Vis():
         self.canvas.app.run()
 
 
-if __name__ == "__main__":
+def main():
     config = args_and_config()
 
-    dataset_root_dir = config["data_location"]
-    data_flags = config["data_flags"]
+    dataset_dir = config["data_location"]
+    data_flags = None
+    transform = transforms.ToTensor()
 
-    mean, std = hypersim_dataset.get_normalizers(train=True)
-    image_transform = transforms.Compose([transforms.ToTensor(), transforms.Normalize(mean=mean, std=std)])
-    depth_transform = transforms.Compose([transforms.ToTensor()])
-    seg_transform = transforms.Compose([transforms.ToTensor()])
-    dataset = hypersim_dataset.HyperSimDataset(root_dir=dataset_root_dir, train=False,
-                                               image_transform=image_transform,
-                                               depth_transform=depth_transform, seg_transform=seg_transform,
+    dataset = hypersim_dataset.HyperSimDataset(root_dir=dataset_dir, train=False,
+                                               image_transform=transform,
+                                               depth_transform=transform, seg_transform=transform,
                                                data_flags=config["data_flags"])
 
-    model_path = config["load"]["path"]
-    in_channels = 3
-    if config["data_flags"]["concat"]:
-        if config["data_flags"]["onehot"]:
-            in_channels = 3 + config["data_flags"]["seg_classes"]
-        else:
-            in_channels = 4
-
-    model, tflags = ModelFactory().get_model(config["model"], in_channels=in_channels, classes=1)
-    model.to(config["device"])
-    checkpoint = torch.load(model_path)
-    model.load_state_dict(checkpoint)
-    model.eval()
-
-    vis = Vis(dataset, model, config)
+    vis = Vis(dataset)
     vis.run()
+
+
+if __name__ == "__main__":
+    main()
