@@ -126,7 +126,19 @@ class HyperSimDataset(Dataset):
         else:
             self.paths = self.paths[split_index:]
 
+        # Print images with infinity values,
+        # for image_path in self.image_paths:
+        #     with h5py.File(image_path, 'r') as image:
+        #         image_np = np.array(image['dataset'])
+        #         if np.isinf(image_np).any():
+        #             print(image_path)
+        #         else:
+        #             print(f'None in {image_path}')
+
         self.length = self.paths.shape[0]
+
+        # tonemap for HDR image normalization
+        self.tonemap = cv2.createTonemapReinhard()
 
     def __len__(self):
         return self.length
@@ -137,9 +149,15 @@ class HyperSimDataset(Dataset):
         # transform image, depth, segmentation into numpy array
         with h5py.File(current_image_path, 'r') as image, h5py.File(current_depth_path, 'r') as depth, \
                 h5py.File(current_seg_path, 'r') as seg:
-            image_np = np.array(image["dataset"])
-            depth_np = np.array(depth["dataset"])
-            seg_np = np.array(seg["dataset"])
+            image_np = np.asarray(image["dataset"], dtype=np.float32)
+            depth_np = np.asarray(depth["dataset"], dtype=np.float32)
+            seg_np = np.asarray(seg["dataset"], dtype=np.float32)
+
+        # hdr to ldr image
+        image_np = np.clip(image_np, 0, 100)
+        image_np = self.tonemap.process(image_np)
+        # plt.imshow(image_np)
+        # plt.show()
 
         image_tensor = self.image_transform(image_np).float()
         depth_tensor = self.depth_transform(depth_np).float()
@@ -160,47 +178,14 @@ class HyperSimDataset(Dataset):
         return {"data": data_tensor, "image": image_tensor, "depths": depth_tensor, "segs": seg_tensor}
 
 
-def get_normalizers(train):
-    if train:
-        mean = [0.54769395, 0.58236081, 0.60076967]
-        std = [0.82304566, 0.81471774, 0.75490005]
-    else:
-        mean = [0.4782557, 0.51865845, 0.55664124]
-        std = [0.45305834, 0.45386348, 0.42803378]
-    return mean, std
+def depth_range():
+    return 0, 5
 
 
 def main():
-    current_path = os.path.abspath(__file__)
-    root_dir = os.path.dirname(current_path)
-    dataset_root_dir = os.path.join(root_dir, 'hypersim', 'decompressed')
-
-    transform = transforms.ToTensor()
-
-    dataset = HyperSimDataset(root_dir=dataset_root_dir, transform=transform)
-    dataloader = DataLoader(dataset, batch_size=4, shuffle=True, num_workers=4)
-
-    for i, batch in enumerate(dataloader):
-        images, depth, seg = batch["image"], batch["depths"], batch["segs"]
-        print(images.size(), depth.size(), seg.size(), sep='\n', end='\n\n')
-
-        # Display the images, depth maps, and segmentation maps in separate subplots
-        for idx in range(images.size(0)):
-            plt.figure(figsize=(15, 5))
-            plt.subplot(1, 3, 1)
-            plt.imshow(images[idx].permute(1, 2, 0))
-            plt.title('Image')
-
-            plt.subplot(1, 3, 2)
-            plt.imshow(depth[idx].squeeze(), cmap='viridis')
-            plt.title('Depth Map')
-
-            plt.subplot(1, 3, 3)
-            plt.imshow(seg[idx].squeeze(), cmap='tab20')
-            plt.title('Segmentation Map')
-
-            plt.show()
-            exit(0)
+    config = args_and_config()
+    dataset_root_dir = config["data_location"]
+    dataset = HyperSimDataset(root_dir=dataset_root_dir, train=True)
 
 
 if __name__ == '__main__':

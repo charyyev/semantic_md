@@ -1,4 +1,6 @@
 import os
+
+import cv2
 import numpy as np
 import torch
 from torch.utils.data import Dataset, DataLoader
@@ -112,6 +114,9 @@ class HyperSimDataset(Dataset):
 
         self.length = self.paths.shape[0]
 
+        # tonemap for HDR image normalization
+        self.tonemap = cv2.createTonemapReinhard()
+
     def __len__(self):
         return self.length
 
@@ -124,6 +129,10 @@ class HyperSimDataset(Dataset):
             image_np = np.array(image["dataset"])
             depth_np = np.array(depth["dataset"])
             seg_np = np.array(seg["dataset"])
+
+        # hdr to ldr image
+        image_np = np.clip(image_np, 0, 100)
+        image_np = self.tonemap.process(image_np)
 
         image_tensor = self.image_transform(image_np).float()
         depth_tensor = self.depth_transform(depth_np).float()
