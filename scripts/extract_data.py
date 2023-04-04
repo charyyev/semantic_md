@@ -78,7 +78,10 @@ def _extract_data(path):
     with open(path, "r") as file:
         lines = file.readlines()
 
-    new_txt_path = path.replace("imgPath.txt", "img_path_extracted.txt")
+    _, file_name = os.path.split(path)
+    file_name = file_name.replace("imgPath.txt", "img_path_extracted.txt")
+    new_dir = "/cluster/project/infk/courses/252-0579-00L/group22_semanticMD/semantic_md/datasets/hypersim/"
+    new_txt_path = os.path.join(new_dir, file_name)
 
     with open(new_txt_path, "w") as new_file:
         for line in lines:
