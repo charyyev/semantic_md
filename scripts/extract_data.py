@@ -1,6 +1,6 @@
 import os
-import h5py
 import numpy as np
+import h5py
 
 
 def _extract_image(image):
@@ -80,11 +80,12 @@ def _extract_data(path):
 
     _, file_name = os.path.split(path)
     file_name = file_name.replace("imgPath.txt", "img_path_extracted.txt")
-    new_dir = "/cluster/project/infk/courses/252-0579-00L/group22_semanticMD/semantic_md/datasets/hypersim/"
+    new_dir = "/cluster/project/infk/courses/252-0579-00L/group22_semanticMD/semantic_md/datasets/hypersim/paths/"
     new_txt_path = os.path.join(new_dir, file_name)
 
     with open(new_txt_path, "w") as new_file:
-        for line in lines:
+        for idx, line in enumerate(lines):
+            print(idx, line)
             img_path = line.strip()
             depth_path = img_path.replace('/image/', '/depth/').replace('_final_hdf5', '_geometry_hdf5').replace(
                 'color.hdf5', 'depth_meters.hdf5')
@@ -103,8 +104,12 @@ def main():
     test_path = "/cluster/project/infk/courses/252-0579-00L/group22_semanticMD/test_imgPath.txt"
 
     _extract_data(train_path)
+    print("Train done")
     _extract_data(val_path)
+    print("Val done")
     _extract_data(test_path)
+    print("Done")
+
 
 if __name__ == '__main__':
     main()

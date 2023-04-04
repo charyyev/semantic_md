@@ -1,4 +1,6 @@
 import os
+
+import cv2
 import numpy as np
 import torch
 from torch.utils.data import Dataset, DataLoader
@@ -7,6 +9,9 @@ import h5py
 import re
 import random
 from matplotlib import pyplot as plt
+import time
+
+from utils.config import args_and_config
 
 '''
 hypersim
@@ -137,9 +142,6 @@ class HyperSimDataset(Dataset):
 
         self.length = self.paths.shape[0]
 
-        # tonemap for HDR image normalization
-        self.tonemap = cv2.createTonemapReinhard()
-
     def __len__(self):
         return self.length
 
@@ -150,14 +152,13 @@ class HyperSimDataset(Dataset):
         with h5py.File(current_image_path, 'r') as image, h5py.File(current_depth_path, 'r') as depth, \
                 h5py.File(current_seg_path, 'r') as seg:
             image_np = np.asarray(image["dataset"], dtype=np.float32)
-            depth_np = np.asarray(depth["dataset"], dtype=np.float32)
+            depth_np = self._extract_depth(depth)
             seg_np = np.asarray(seg["dataset"], dtype=np.float32)
 
-        # hdr to ldr image
-        image_np = np.clip(image_np, 0, 100)
-        image_np = self.tonemap.process(image_np)
         # plt.imshow(image_np)
         # plt.show()
+        if np.isnan(image_np).any():
+            print("Image contains NaN!")
 
         image_tensor = self.image_transform(image_np).float()
         depth_tensor = self.depth_transform(depth_np).float()
@@ -176,6 +177,51 @@ class HyperSimDataset(Dataset):
             data_tensor = image_tensor.clone()
 
         return {"data": data_tensor, "image": image_tensor, "depths": depth_tensor, "segs": seg_tensor}
+
+    def _extract_image(self, image):
+        # conversion adapted from here:
+        # https://github.com/apple/ml-hypersim/blob/main/code/python/tools/scene_generate_images_tonemap.py
+        rgb_color = np.asarray(image["dataset"], dtype=np.float32)
+        render_entity_id = np.asarray(image["dataset"], dtype=np.int32)
+        # assert (render_entity_id != 0).all()
+
+        gamma = 1.0 / 2.2  # standard gamma correction exponent
+        inv_gamma = 1.0 / gamma
+        percentile = 90  # we want this percentile brightness value in the unmodified image...
+        brightness_nth_percentile_desired = 0.8  # ...to be this bright after scaling
+
+        valid_mask = render_entity_id != -1
+
+        if np.all(valid_mask):
+            scale = 1.0  # if there are no valid pixels, then set scale to 1.0
+        else:
+            brightness = 0.3 * rgb_color[:, :, 0] + 0.59 * rgb_color[:, :, 1] + 0.11 * rgb_color[:, :,
+                                                                                       2]  # "CCIR601 YIQ" method for computing brightness
+            brightness_valid = brightness[valid_mask]
+
+            eps = 0.0001  # if the kth percentile brightness value in the unmodified image is less than this, set the scale to 0.0 to avoid divide-by-zero
+            brightness_nth_percentile_current = np.percentile(brightness_valid, percentile)
+
+            if brightness_nth_percentile_current < eps:
+                scale = 0.0
+            else:
+
+                # Snavely uses the following expression in the code at https://github.com/snavely/pbrs_tonemapper/blob/master/tonemap_rgbe.py:
+                # scale = np.exp(np.log(brightness_nth_percentile_desired)*inv_gamma - np.log(brightness_nth_percentile_current))
+                #
+                # Our expression below is equivalent, but is more intuitive, because it follows more directly from the expression:
+                # (scale*brightness_nth_percentile_current)^gamma = brightness_nth_percentile_desired
+
+                scale = np.power(brightness_nth_percentile_desired, inv_gamma) / brightness_nth_percentile_current
+
+        rgb_color_tm = np.power(np.maximum(scale * rgb_color, 0), gamma)
+        rgb_color_tm = np.clip(rgb_color_tm, 0, 1)
+        return rgb_color_tm
+
+    def _extract_depth(self, depth):
+        depth_np = np.asarray(depth["dataset"], dtype=np.float32)
+        depth_np = np.clip(depth_np, 0, 20)
+        return depth_np
 
 
 def depth_range():

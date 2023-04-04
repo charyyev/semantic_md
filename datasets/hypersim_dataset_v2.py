@@ -1,15 +1,11 @@
 import os
 
-import cv2
 import numpy as np
 import torch
-from torch.utils.data import Dataset, DataLoader
+from torch.utils.data import Dataset
 from utils.config import args_and_config
-from torchvision.transforms import ToTensor, transforms
-import h5py
-import re
+from torchvision.transforms import transforms
 import random
-from matplotlib import pyplot as plt
 
 '''
 HyperSim_Data
@@ -80,14 +76,18 @@ class HyperSimDataset(Dataset):
         self.image_paths = []
         self.depth_paths = []
         self.seg_paths = []
-        
-        if file_path=='':
+
+        if file_path == '':
             print("File path not given for loading data...")
         with open(file_path, 'r') as file:
             for line in file:
-                imgPath = os.path.join(self.root_dir, line.replace('\n',''))
-                depthPath = os.path.join(self.root_dir, imgPath.replace('/image/','/depth/').replace('_final_hdf5', '_geometry_hdf5').replace('color.hdf5','depth_meters.hdf5'))
-                semPath = os.path.join(self.root_dir, imgPath.replace('/image/','/semantic/').replace('_final_hdf5', '_geometry_hdf5').replace('color.hdf5','semantic.hdf5'))
+                imgPath = os.path.join(self.root_dir, line.replace('\n', ''))
+                depthPath = os.path.join(self.root_dir, imgPath.replace('/image/', '/depth/').replace('_final_hdf5',
+                                                                                                      '_geometry_hdf5').replace(
+                    'color.hdf5', 'depth_meters.hdf5'))
+                semPath = os.path.join(self.root_dir, imgPath.replace('/image/', '/semantic/').replace('_final_hdf5',
+                                                                                                       '_geometry_hdf5').replace(
+                    'color.hdf5', 'semantic.hdf5'))
 
                 if os.path.exists(imgPath) and os.path.exists(depthPath) and os.path.exists(semPath):
                     self.image_paths.append(imgPath)
@@ -106,16 +106,13 @@ class HyperSimDataset(Dataset):
         self.paths = np.column_stack((self.image_paths, self.depth_paths, self.seg_paths))
 
         # Print images with infinity values, TODO: delete
-        for image_path in self.image_paths:
-            with h5py.File(image_path, 'r') as image:
-                image_np = np.array(image['dataset'])
-                if np.isinf(image_np).any():
-                    print(image_path)
+        # for image_path in self.image_paths:
+        #   with h5py.File(image_path, 'r') as image:
+        #        image_np = np.array(image['dataset'])
+        #        if np.isinf(image_np).any():
+        #            print(image_path)
 
         self.length = self.paths.shape[0]
-
-        # tonemap for HDR image normalization
-        self.tonemap = cv2.createTonemapReinhard()
 
     def __len__(self):
         return self.length
@@ -124,15 +121,9 @@ class HyperSimDataset(Dataset):
         [current_image_path, current_depth_path, current_seg_path] = self.paths[idx]
 
         # transform image, depth, segmentation into numpy array
-        with h5py.File(current_image_path, 'r') as image, h5py.File(current_depth_path, 'r') as depth, \
-                h5py.File(current_seg_path, 'r') as seg:
-            image_np = np.array(image["dataset"])
-            depth_np = np.array(depth["dataset"])
-            seg_np = np.array(seg["dataset"])
-
-        # hdr to ldr image
-        image_np = np.clip(image_np, 0, 100)
-        image_np = self.tonemap.process(image_np)
+        image_np = np.load(current_image_path)
+        depth_np = np.load(current_depth_path)
+        seg_np = np.load(current_seg_path)
 
         image_tensor = self.image_transform(image_np).float()
         depth_tensor = self.depth_transform(depth_np).float()
@@ -152,10 +143,6 @@ class HyperSimDataset(Dataset):
 
         return {"data": data_tensor, "image": image_tensor, "depths": depth_tensor, "segs": seg_tensor}
 
-def get_normalizers(train):
-    mean = [0.47971886, 0.4922313,  0.48988785]
-    std = [0.93493607, 0.98621711, 0.9890384]
-    return mean, std
 
 def main():
     config = args_and_config()
