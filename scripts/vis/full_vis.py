@@ -27,7 +27,7 @@ class Vis():
 
         self.canvas = SceneCanvas(keys='interactive',
                                   show=True,
-                                  size=(1280, 1280))
+                                  size=(1920, 1080))
         self.canvas.events.key_press.connect(self._key_press)
         self.canvas.events.draw.connect(self._draw)
         self.canvas.show()
@@ -46,7 +46,7 @@ class Vis():
 
         # image
         data = self.dataset[self.index]
-        image = data["image"].permute((1, 2, 0))
+        image = data["original_image"].permute((1, 2, 0))
         image = image.numpy()
         axes[0, 0].imshow(image)
 
@@ -57,10 +57,12 @@ class Vis():
         axes[0, 1].imshow(img_depths_vir)
 
         # colorbar
-        norm = plt.Normalize(vmin=0, vmax=1)
+        min_depth, max_depth = dataset.get_contants()
+        norm = plt.Normalize(vmin=min_depth, vmax=max_depth)
         sm = cm.ScalarMappable(cmap='viridis', norm=norm)
         sm.set_array([])
-        cb = fig.colorbar(sm, ax=axes[0, 2], fraction=0.9, pad=0.04, shrink=.9, aspect=1.5, ticks=[0, 1])
+        cb = fig.colorbar(sm, ax=axes[0, 2], fraction=0.9, pad=0.04, shrink=.9, aspect=1.5,
+                          ticks=[0, max_depth // 2, max_depth])
         cb.ax.tick_params(labelsize=25)
 
         # prediction
@@ -117,6 +119,7 @@ class Vis():
 if __name__ == "__main__":
     config = args_and_config()
 
+    config["device"] = "cpu"
     dataset_root_dir = config["data_location"]
     data_flags = config["data_flags"]
 
