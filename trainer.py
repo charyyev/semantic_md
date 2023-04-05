@@ -1,6 +1,6 @@
 # dataloader files
 import cv2
-import matplotlib.pyplot as plt
+# import matplotlib.pyplot as plt
 
 from datasets import hypersim_dataset as dataset
 # model file
@@ -111,13 +111,14 @@ class Trainer():
         for k, v in total_metrics.items():
             print(f"{k}: {v / len(self.train_loader):.5f}")
 
-        img = image.clone().detach().cpu().numpy()[0].transpose(1, 2, 0)
-        plt.imshow(img)
-        plt.show()
-        plt.imshow(target.clone().detach().cpu().numpy()[0].transpose(1, 2, 0))
-        plt.show()
-        plt.imshow(pred.clone().detach().cpu().numpy()[0].transpose(1, 2, 0))
-        plt.show()
+        # img = data["original_image"]
+        # img = image.clone().detach().cpu().numpy()[0].transpose(1, 2, 0)
+        # plt.imshow(img)
+        # plt.show()
+        # plt.imshow(target.clone().detach().cpu().numpy()[0].transpose(1, 2, 0))
+        # plt.show()
+        # plt.imshow(pred.clone().detach().cpu().numpy()[0].transpose(1, 2, 0))
+        # plt.show()
 
     def train(self):
         print("building model...")
