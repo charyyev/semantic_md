@@ -156,14 +156,14 @@ class Trainer():
         start_time = time.time()
         self.model.eval()
         with torch.no_grad():
-            for data in self.val_loader:
+            for data in tqdm(self.val_loader):
                 image = data["image"].to(self.device)
                 target = data["depths"].to(self.device)
 
                 pred = self.model(image)
                 loss = self.loss(pred, target)
                 loss = self.nan_reduction(loss)
-                metrics = depth_metrics(pred, target)
+                metrics = depth_metrics(pred, target, self.epsilon)
 
                 # print(loss.item())
                 total_loss += loss.item()
@@ -172,17 +172,17 @@ class Trainer():
 
         self.model.train()
         self.writer.add_scalar("val_loss", total_loss / len(self.val_loader), epoch)
-        self.writer.add_scalar("val_delta1", total_metrics["delta1"] / len(self.train_loader), epoch)
-        self.writer.add_scalar("val_delta2", total_metrics["delta2"] / len(self.train_loader), epoch)
-        self.writer.add_scalar("val_delta3", total_metrics["delta3"] / len(self.train_loader), epoch)
-        self.writer.add_scalar("val_abs_rel", total_metrics["abs_rel"] / len(self.train_loader), epoch)
-        self.writer.add_scalar("val_rmse", total_metrics["rmse"] / len(self.train_loader), epoch)
-        self.writer.add_scalar("val_log10", total_metrics["log10"] / len(self.train_loader), epoch)
+        self.writer.add_scalar("val_delta1", total_metrics["delta1"] / len(self.val_loader), epoch)
+        self.writer.add_scalar("val_delta2", total_metrics["delta2"] / len(self.val_loader), epoch)
+        self.writer.add_scalar("val_delta3", total_metrics["delta3"] / len(self.val_loader), epoch)
+        self.writer.add_scalar("val_abs_rel", total_metrics["abs_rel"] / len(self.val_loader), epoch)
+        self.writer.add_scalar("val_rmse", total_metrics["rmse"] / len(self.val_loader), epoch)
+        self.writer.add_scalar("val_log10", total_metrics["log10"] / len(self.val_loader), epoch)
 
         print("\nEpoch {} | Time {} | Validation Loss: {:.5f}".format(
             epoch, time.time() - start_time, total_loss / len(self.val_loader)))
         for k, v in total_metrics.items():
-            print(f"{k}: {v / len(self.train_loader):.5f}")
+            print(f"{k}: {v / len(self.val_loader):.5f}")
 
         if total_loss / len(self.val_loader) < self.prev_val_loss:
             self.prev_val_loss = total_loss / len(self.val_loader)
