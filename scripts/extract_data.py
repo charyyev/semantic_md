@@ -83,19 +83,22 @@ def _extract_data(path):
     new_dir = "/cluster/project/infk/courses/252-0579-00L/group22_semanticMD/semantic_md/datasets/hypersim/paths/"
     new_txt_path = os.path.join(new_dir, file_name)
 
-    with open(new_txt_path, "w") as new_file:
-        for idx, line in enumerate(lines):
-            print(idx, line)
-            img_path = line.strip()
-            depth_path = img_path.replace('/image/', '/depth/').replace('_final_hdf5', '_geometry_hdf5').replace(
-                'color.hdf5', 'depth_meters.hdf5')
-            seg_path = img_path.replace('/image/', '/semantic/').replace('_final_hdf5', '_geometry_hdf5').replace(
-                'color.hdf5', 'semantic.hdf5')
+    try:
+        with open(new_txt_path, "w") as new_file:
+            for idx, line in enumerate(lines):
+                print(idx, line)
+                img_path = line.strip()
+                depth_path = img_path.replace('/image/', '/depth/').replace('_final_hdf5', '_geometry_hdf5').replace(
+                    'color.hdf5', 'depth_meters.hdf5')
+                seg_path = img_path.replace('/image/', '/semantic/').replace('_final_hdf5', '_geometry_hdf5').replace(
+                    'color.hdf5', 'semantic.hdf5')
 
-            new_path = _image(img_path)
-            _depth(depth_path)
-            _seg(seg_path)
-            print(new_path, file=new_file)
+                new_path = _image(img_path)
+                _depth(depth_path)
+                _seg(seg_path)
+                print(new_path, file=new_file)
+    except Exception:
+        pass
 
 
 def main():
