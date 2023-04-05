@@ -86,7 +86,7 @@ class Trainer():
             # clamp values to >0
             loss = self.loss(pred, target)
             loss = self.nan_reduction(loss)
-            metrics = depth_metrics(pred, target, self.epsilon)
+            metrics = depth_metrics(pred, target, self.epsilon, self.config)
 
             # print(loss.item())
 
@@ -161,7 +161,7 @@ class Trainer():
                 pred = self.model(image)
                 loss = self.loss(pred, target)
                 loss = self.nan_reduction(loss)
-                metrics = depth_metrics(pred, target, self.epsilon)
+                metrics = depth_metrics(pred, target, self.epsilon, self.config)
 
                 # print(loss.item())
                 total_loss += loss.item()

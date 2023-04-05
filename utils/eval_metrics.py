@@ -1,10 +1,16 @@
 import torch
 import numpy as np
 
+def unnormalize(inp, min_depth, max_depth):
+    inp = inp * (max_depth - min_depth) + min_depth
+    return inp
 
-def depth_metrics(pred, target, epsilon):
+def depth_metrics(pred, target, epsilon, config):
     pred = torch.clamp(pred, min=epsilon, max=None)
     assert pred.shape == target.shape
+    min_depth, max_depth = config["transformations"]["depth_range"]
+    target = unnormalize(target, min_depth, max_depth)
+    pred = unnormalize(pred, min_depth, max_depth)
 
     # accuracy with threshold t = 1.25, 1.25^2, 1.25^3
     thresh = torch.max((target / pred), (pred / target))
@@ -42,7 +48,7 @@ def test():
     ])
     print(y_pred.size())
 
-    metrics = depth_metrics(y_pred, y_target)
+    metrics = depth_metrics(y_pred, y_target, epsilon, 0, 15)
 
     # print the loss value
     print(metrics)

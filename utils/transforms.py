@@ -90,6 +90,7 @@ def compute_transforms(transform_config, config):
 
     def depth_transform(input_):
         x = resize(input_)
+        x = np.clip(x, min_depth, max_depth)
         x = (x - min_depth) / (max_depth - min_depth)
         tf = transforms.Compose([*base_transform])
         return tf(x)
