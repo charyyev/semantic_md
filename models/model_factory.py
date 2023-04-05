@@ -19,13 +19,13 @@ class ModelFactory:
             uresnet50=(
             smp.Unet, {"encoder_name": "tu-resnet50", "encoder_weights": None, "activation": "sigmoid"}, "resnet50"),
             uefficientnet_b2=(
-                smp.Unet, {"encoder_name": "tu-efficientnet-b2", "encoder_weights": None, "activation": "sigmoid"},
+                smp.Unet, {"encoder_name": "tu-efficientnet_b2", "encoder_weights": None, "activation": "sigmoid"},
                 "efficientnet_b2"),
             uefficientnet_b3=(
                 smp.Unet, {"encoder_name": "tu-efficientnet_b3", "encoder_weights": None, "activation": "sigmoid"},
                 "efficientnet_b3"),
             uefficientnet_b4=(
-                smp.Unet, {"encoder_name": "tu-efficientnet-b4", "encoder_weights": None, "activation": "sigmoid"},
+                smp.Unet, {"encoder_name": "tu-efficientnet_b4", "encoder_weights": None, "activation": "sigmoid"},
                 "efficientnet_b4"),
             deepresnet34=(
             {"encoder_name": "tu-resnet34", "encoder_weights": None, "activation": "sigmoid"}, "resnet34"),
