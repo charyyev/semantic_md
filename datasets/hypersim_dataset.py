@@ -146,20 +146,13 @@ class HyperSimDataset(Dataset):
             data_tensor = image_tensor.clone()
 
         return {"data": data_tensor, "image": image_tensor, "depths": depth_tensor, "segs": seg_tensor,
-                "orignal_image": original_image_tensor}
-
-    def get_contants(self):
-        return 0, _MAX_DEPTH
-
-
-def depth_range():
-    return 0, 20
+                "original_image": original_image_tensor}
 
 
 def main():
     config = args_and_config()
     dataset_root_dir = config["data_location"]
-    dataset = HyperSimDataset(root_dir=dataset_root_dir, train=True, file_path=config["train"]["data"])
+    dataset = HyperSimDataset(root_dir=dataset_root_dir, file_path=config["train"]["data"])
 
 
 if __name__ == '__main__':

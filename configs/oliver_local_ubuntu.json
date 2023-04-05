@@ -16,7 +16,7 @@
     },
     "train": 
     {
-        "batch_size": 4,
+        "batch_size": 8,
         "learning_rate": 0.001,
         "epochs": 100,
         "weight_decay": 0,
@@ -32,7 +32,8 @@
     },
     "transformations":
     {
-        "resize": [768, 576]
+        "resize": [768, 576],
+        "depth_range": [0, 15]
     },
     "augmentation":
     {
@@ -53,6 +54,6 @@
     },
     "load":
     {
-        "path": "/home/oliver/Documents/University/2023/ext-projects/semantic_md/experiments/uefficientnet_b3_overfit_2023-04-05_1/checkpoints/95epoch.pth"
+        "path": "/home/oliver/Documents/University/2023/ext-projects/semantic_md/experiments/uefficientnet_b3_2023-04-05_overfit_v8/checkpoints/55epoch.pth"
     }
 }
