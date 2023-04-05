@@ -39,6 +39,8 @@ hypersim
 │   ├── ...
 '''
 
+_MAX_DEPTH = 10
+
 
 class HyperSimDataset(Dataset):
     def __init__(self, root_dir, train=True, test_split=.8, image_transform=None, depth_transform=None,
@@ -151,18 +153,19 @@ class HyperSimDataset(Dataset):
         # transform image, depth, segmentation into numpy array
         with h5py.File(current_image_path, 'r') as image, h5py.File(current_depth_path, 'r') as depth, \
                 h5py.File(current_seg_path, 'r') as seg:
-            image_np = np.asarray(image["dataset"], dtype=np.float32)
+            image_np = self._extract_image(image)
             depth_np = self._extract_depth(depth)
             seg_np = np.asarray(seg["dataset"], dtype=np.float32)
-
-        # plt.imshow(image_np)
-        # plt.show()
         if np.isnan(image_np).any():
-            print("Image contains NaN!")
+            print(f"Image {current_image_path} contains NaN!")
 
+        original_image_tensor = transforms.ToTensor()(image_np)
         image_tensor = self.image_transform(image_np).float()
         depth_tensor = self.depth_transform(depth_np).float()
         seg_tensor = self.seg_transform(seg_np).float()
+
+        # plt.imshow(image_np)
+        # plt.show()
 
         if self.data_flags.get("onehot", False):
             nr_classes = self.data_flags["seg_classes"]
@@ -176,7 +179,8 @@ class HyperSimDataset(Dataset):
         else:
             data_tensor = image_tensor.clone()
 
-        return {"data": data_tensor, "image": image_tensor, "depths": depth_tensor, "segs": seg_tensor}
+        return {"data": data_tensor, "image": image_tensor, "depths": depth_tensor, "segs": seg_tensor,
+                "original_image": original_image_tensor}
 
     def _extract_image(self, image):
         # conversion adapted from here:
@@ -220,12 +224,15 @@ class HyperSimDataset(Dataset):
 
     def _extract_depth(self, depth):
         depth_np = np.asarray(depth["dataset"], dtype=np.float32)
-        depth_np = np.clip(depth_np, 0, 20)
+        depth_np = np.clip(depth_np, 0, _MAX_DEPTH)
         return depth_np
+
+    def get_contants(self):
+        return 0, _MAX_DEPTH
 
 
 def depth_range():
-    return 0, 5
+    return 0, _MAX_DEPTH
 
 
 def main():

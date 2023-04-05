@@ -41,6 +41,8 @@ replace-- /image/ with /semantic/ ; _final_hdf5 with _geometry_hdf5 ; color.hdf5
 
 '''
 
+_MAX_DEPTH = 10
+
 
 class HyperSimDataset(Dataset):
     def __init__(self, root_dir, train=True, file_path='', test_split=.8, image_transform=None, depth_transform=None,
@@ -123,8 +125,10 @@ class HyperSimDataset(Dataset):
         # transform image, depth, segmentation into numpy array
         image_np = np.load(current_image_path)
         depth_np = np.load(current_depth_path)
+        depth_np = np.clip(depth_np, 0, _MAX_DEPTH)
         seg_np = np.load(current_seg_path)
 
+        original_image_tensor = transforms.ToTensor()(image_np)
         image_tensor = self.image_transform(image_np).float()
         depth_tensor = self.depth_transform(depth_np).float()
         seg_tensor = self.seg_transform(seg_np).float()
@@ -141,7 +145,15 @@ class HyperSimDataset(Dataset):
         else:
             data_tensor = image_tensor.clone()
 
-        return {"data": data_tensor, "image": image_tensor, "depths": depth_tensor, "segs": seg_tensor}
+        return {"data": data_tensor, "image": image_tensor, "depths": depth_tensor, "segs": seg_tensor,
+                "orignal_image": original_image_tensor}
+
+    def get_contants(self):
+        return 0, _MAX_DEPTH
+
+
+def depth_range():
+    return 0, 20
 
 
 def main():
