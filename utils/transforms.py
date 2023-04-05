@@ -67,10 +67,10 @@ class Affine(object):
         return image, label
 
 
-def compute_transforms(dataset, transform_config, config):
+def compute_transforms(transform_config, config):
     tcfg = transform_config
     mean, std = tcfg["mean"], tcfg["std"]
-    min_depth, max_depth = dataset.depth_range()
+    min_depth, max_depth = config["transformations"]["depth_range"]
     new_size = config["transformations"]["resize"]
 
     def resize(input_):

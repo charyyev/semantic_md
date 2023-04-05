@@ -20,10 +20,11 @@ from utils.transforms import compute_transforms
 
 
 class Vis():
-    def __init__(self, dataset, model):
+    def __init__(self, dataset, model, config):
         self.index = 0
         self.dataset = dataset
         self.model = model
+        self.config = config
 
         self.canvas = SceneCanvas(keys='interactive',
                                   show=True,
@@ -57,12 +58,12 @@ class Vis():
         axes[0, 1].imshow(img_depths_vir)
 
         # colorbar
-        min_depth, max_depth = dataset.get_contants()
+        min_depth, max_depth = self.config["transformations"]["depth_range"]
         norm = plt.Normalize(vmin=min_depth, vmax=max_depth)
         sm = cm.ScalarMappable(cmap='viridis', norm=norm)
         sm.set_array([])
         cb = fig.colorbar(sm, ax=axes[0, 2], fraction=0.9, pad=0.04, shrink=.9, aspect=1.5,
-                          ticks=[0, max_depth // 2, max_depth])
+                          ticks=[0, max_depth / 2, max_depth])
         cb.ax.tick_params(labelsize=25)
 
         # prediction
@@ -134,13 +135,11 @@ if __name__ == "__main__":
     model, transform_config = ModelFactory().get_model(config["model"], pretrained_weights_path,
                                                        in_channels=in_channels, classes=1)
     model.to(config["device"])
-    image_transform, depth_transform, seg_transform = compute_transform = compute_transforms(hypersim_dataset,
-                                                                                             transform_config, config)
+    image_transform, depth_transform, seg_transform = compute_transform = compute_transforms(transform_config, config)
 
-    dataset = hypersim_dataset.HyperSimDataset(root_dir=dataset_root_dir, train=False,
-                                               image_transform=image_transform,
-                                               depth_transform=depth_transform, seg_transform=seg_transform,
-                                               data_flags=config["data_flags"])
+    dataset = hypersim_dataset.HyperSimDataset(root_dir=dataset_root_dir, file_path=config["val"]["data"],
+                                               image_transform=image_transform, depth_transform=depth_transform,
+                                               seg_transform=seg_transform, data_flags=config["data_flags"])
 
     model_path = config["load"].get("path", None)
     if not (model_path is None or model_path.strip() == ""):
@@ -148,5 +147,5 @@ if __name__ == "__main__":
         model.load_state_dict(checkpoint)
     model.eval()
 
-    vis = Vis(dataset, model)
+    vis = Vis(dataset, model, config)
     vis.run()

@@ -32,7 +32,8 @@
     },
     "transformations":
     {
-        "resize": [768, 576]
+        "resize": [768, 576],
+        "depth_range": [0, 15]
     },
     "augmentation":
     {

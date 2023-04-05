@@ -1,5 +1,4 @@
 # dataloader files
-import cv2
 # import matplotlib.pyplot as plt
 
 from datasets import hypersim_dataset as dataset
@@ -32,8 +31,7 @@ class Trainer():
         # aug_config = self.config["augmentation"]
 
         dataset_root_dir = self.config["data_location"]
-        image_transform, depth_transform, seg_transform = compute_transforms(dataset, self.transform_config,
-                                                                             self.config)
+        image_transform, depth_transform, seg_transform = compute_transforms(self.transform_config, self.config)
 
         # #if using hypersim_dataset file
         train_dataset = dataset.HyperSimDataset(root_dir=dataset_root_dir, file_path=self.config["train"]["data"],
@@ -112,7 +110,7 @@ class Trainer():
             print(f"{k}: {v / len(self.train_loader):.5f}")
 
         # img = data["original_image"]
-        # img = image.clone().detach().cpu().numpy()[0].transpose(1, 2, 0)
+        # img = img.clone().detach().cpu().numpy()[0].transpose(1, 2, 0)
         # plt.imshow(img)
         # plt.show()
         # plt.imshow(target.clone().detach().cpu().numpy()[0].transpose(1, 2, 0))
