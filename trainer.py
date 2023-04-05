@@ -1,5 +1,6 @@
 # dataloader files
 import cv2
+import matplotlib.pyplot as plt
 
 from datasets.nyu_dataset import NyuDataset
 from datasets import hypersim_dataset
@@ -69,7 +70,7 @@ class Trainer():
     def build_model(self):
         learning_rate = self.config["train"]["learning_rate"]
         weight_decay = self.config["train"]["weight_decay"]
-        lr_decay_at = self.config["train"]["lr_decay_at"]
+        epochs = self.config["train"]["epochs"]
 
         in_channels = 3
         if self.config["data_flags"]["concat"]:
@@ -84,12 +85,12 @@ class Trainer():
         self.model.to(self.device)
 
         # we have nan values in the target, therefore do not reduce and use self.nan_reduction instead
-        # self.loss = torch.nn.L1Loss(reduction='none')
+        self.loss = torch.nn.L1Loss(reduction='none')
         # self.loss = torch.nn.SmoothL1Loss(reduction='none')
-        self.loss = BerHuLoss(contains_nan=True)
+        # self.loss = BerHuLoss(contains_nan=True)
         self.nan_reduction = torch.nanmean
         self.optimizer = torch.optim.Adam(self.model.parameters(), lr=learning_rate, weight_decay=weight_decay)
-        self.scheduler = torch.optim.lr_scheduler.MultiStepLR(self.optimizer, milestones=lr_decay_at, gamma=0.1)
+        self.scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(self.optimizer, T_max=epochs, eta_min=0)
 
     def train_one_epoch(self, epoch):
         print("training epoch ", epoch)
@@ -131,6 +132,14 @@ class Trainer():
             epoch, time.time() - start_time, total_loss / len(self.train_loader)))
         for k, v in total_metrics.items():
             print(f"{k}: {v / len(self.train_loader):.5f}")
+
+        img = image.clone().detach().cpu().numpy()[0].transpose(1, 2, 0)
+        plt.imshow(img)
+        plt.show()
+        plt.imshow(target.clone().detach().cpu().numpy()[0].transpose(1, 2, 0))
+        plt.show()
+        plt.imshow(pred.clone().detach().cpu().numpy()[0].transpose(1, 2, 0))
+        plt.show()
 
     def train(self):
         print("building model...")
@@ -202,11 +211,19 @@ class Trainer():
             torch.save(self.model.state_dict(), path)
 
     def make_experiments_dirs(self):
-        base = self.config["model"] + "_" + self.config["note"] + "_" + self.config["date"] + "_" + str(
-            self.config["ver"])
-        path = os.path.join(self.config["experiments"], base)
-        if not os.path.exists(path):
-            os.mkdir(path)
+        model = self.config["model"]
+        note = self.config["note"]
+        date = self.config["date"]
+        base = f"{model}_{date}_{note}_v"
+
+        version = 0
+        while True:
+            path = os.path.join(self.config["experiments"], base + str(version))
+            if os.path.exists(path):
+                version += 1
+            else:
+                os.mkdir(path)
+                break
         self.checkpoints_dir = os.path.join(path, "checkpoints")
         self.best_checkpoints_dir = os.path.join(path, "best_checkpoints")
         self.runs_dir = os.path.join(path, "runs")

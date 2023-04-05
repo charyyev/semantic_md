@@ -1,8 +1,7 @@
 {
-    "model": "UNet",
-    "date": "2023-03-27",
-    "ver": 1,
-    "note": "trial",
+    "model": "uefficientnet_b3",
+    "date": "2023-04-05",
+    "note": "overfit",
     "device": "cuda",
     "resume_training": false,
     "resume_from": 0,

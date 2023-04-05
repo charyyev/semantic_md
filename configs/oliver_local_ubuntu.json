@@ -1,9 +1,8 @@
 {
-    "model": "UEfficientNet",
-    "date": "2023-03-28",
-    "ver": 1,
+    "model": "uefficientnet_b3",
+    "date": "2023-04-05",
     "note": "overfit",
-    "device": "cpu",
+    "device": "cuda",
     "resume_training": false,
     "resume_from": 0,
     "root_dir": "/home/oliver/Documents/University/2023/ext-projects/semantic_md/",
@@ -17,11 +16,10 @@
     },
     "train": 
     {
-        "batch_size": 1,
-        "learning_rate": 0.003,
+        "batch_size": 4,
+        "learning_rate": 0.001,
         "epochs": 100,
-        "weight_decay": 0.0001,
-        "lr_decay_at": [50, 250, 1000],
+        "weight_decay": 0,
         "save_every": 5,
         "data": "/home/sapar/3dvision/data/list/overfit.txt"
         
@@ -55,6 +53,6 @@
     },
     "load":
     {
-        "path": "/home/oliver/Documents/University/2023/ext-projects/semantic_md/experiments/UEfficientNet_overfit_2023-03-26_1/checkpoints/85epoch.pth"
+        "path": "/home/oliver/Documents/University/2023/ext-projects/semantic_md/experiments/uefficientnet_b3_overfit_2023-04-05_1/checkpoints/95epoch.pth"
     }
 }
