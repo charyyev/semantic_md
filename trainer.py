@@ -2,8 +2,7 @@
 import cv2
 import matplotlib.pyplot as plt
 
-from datasets.nyu_dataset import NyuDataset
-from datasets import hypersim_dataset
+from datasets import hypersim_dataset as dataset
 # model file
 from models.model_factory import ModelFactory
 # loss function file
@@ -13,11 +12,8 @@ from utils.eval_metrics import depth_metrics
 # Transformation
 from utils.transforms import compute_transforms
 
-import numpy as np
 from torch.utils.data import DataLoader
 from torch.utils.tensorboard import SummaryWriter
-from torchvision import transforms
-import torch.nn.functional as F
 import torch
 import os
 import time
@@ -33,38 +29,21 @@ class Trainer():
         self.epsilon = 1e-18
 
     def prepare_loaders(self):
-        aug_config = self.config["augmentation"]
-
-        # train_dataset = NyuDataset(self.config["train"]["data"], self.config["data_location"])
-        # self.train_loader = DataLoader(train_dataset, shuffle=True, batch_size=self.config["train"]["batch_size"])
-        #
-        # val_dataset = NyuDataset(self.config["val"]["data"], self.config["data_location"])
-        # self.val_loader = DataLoader(val_dataset, shuffle=False, batch_size=self.config["val"]["batch_size"])
+        # aug_config = self.config["augmentation"]
 
         dataset_root_dir = self.config["data_location"]
-        image_transform, depth_transform, seg_transform = compute_transforms(hypersim_dataset, self.transform_config,
+        image_transform, depth_transform, seg_transform = compute_transforms(dataset, self.transform_config,
                                                                              self.config)
 
-        # if using hypersim_dataset_v2 file
-        # train_dataset = HyperSimDataset(root_dir=dataset_root_dir, train=True, file_path = self.config["train"]["data"], transform=None,
-        #                                 data_flags=self.config["data_flags"])
-        # self.train_loader = DataLoader(train_dataset, shuffle=True, batch_size=self.config["train"]["batch_size"])
-        #
-        # val_dataset = HyperSimDataset(root_dir=dataset_root_dir, train=False, file_path = self.config["val"]["data"], transform=None,
-        #                               data_flags=self.config["data_flags"])
-        # self.val_loader = DataLoader(val_dataset, shuffle=False, batch_size=self.config["val"]["batch_size"])
-
         # #if using hypersim_dataset file
-        train_dataset = hypersim_dataset.HyperSimDataset(root_dir=dataset_root_dir, train=True,
-                                                         image_transform=image_transform,
-                                                         depth_transform=depth_transform, seg_transform=seg_transform,
-                                                         data_flags=self.config["data_flags"])
+        train_dataset = dataset.HyperSimDataset(root_dir=dataset_root_dir, file_path=self.config["train"]["data"],
+                                                image_transform=image_transform, depth_transform=depth_transform,
+                                                seg_transform=seg_transform, data_flags=self.config["data_flags"])
         self.train_loader = DataLoader(train_dataset, shuffle=True, batch_size=self.config["train"]["batch_size"])
 
-        val_dataset = hypersim_dataset.HyperSimDataset(root_dir=dataset_root_dir, train=False,
-                                                       image_transform=image_transform,
-                                                       depth_transform=depth_transform, seg_transform=seg_transform,
-                                                       data_flags=self.config["data_flags"])
+        val_dataset = dataset.HyperSimDataset(root_dir=dataset_root_dir, file_path=self.config["val"]["data"],
+                                              image_transform=image_transform, depth_transform=depth_transform,
+                                              seg_transform=seg_transform, data_flags=self.config["data_flags"])
         self.val_loader = DataLoader(val_dataset, shuffle=False, batch_size=self.config["val"]["batch_size"])
 
     def build_model(self):
@@ -100,7 +79,6 @@ class Trainer():
         start_time = time.time()
         self.model.train()
         for data in tqdm(self.train_loader):
-            # for data in list(tqdm(self.train_loader))[:1]:
             image = data["image"].to(self.device)
             target = data["depths"].to(self.device)
 

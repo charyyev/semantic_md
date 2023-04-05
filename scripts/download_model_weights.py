@@ -62,4 +62,4 @@ def main(download_from_link=False):
 
 
 if __name__ == '__main__':
-    main(download_from_link=True)
+    main(download_from_link=False)
