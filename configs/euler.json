@@ -16,19 +16,18 @@
     },
     "train": 
     {
-        "batch_size": 8,
-        "learning_rate": 0.003,
+        "batch_size": 16,
+        "learning_rate": 0.001,
         "epochs": 100,
-        "weight_decay": 0.0001,
-        "lr_decay_at": [50, 250, 1000],
+        "weight_decay": 0,
         "save_every": 5,
-        "data": "/cluster/project/infk/courses/252-0579-00L/group22_semanticMD/semantic_md/datasets/hypersim/train_imgPath.txt"
+        "data": "/cluster/project/infk/courses/252-0579-00L/group22_semanticMD/semantic_md/datasets/hypersim/train_img_path_extracted.txt"
         
     },
     "val": 
     {
         "batch_size": 4,
-        "data": "/cluster/project/infk/courses/252-0579-00L/group22_semanticMD/semantic_md/datasets/hypersim/val_imgPath.txt",
+        "data": "/cluster/project/infk/courses/252-0579-00L/group22_semanticMD/semantic_md/datasets/hypersim/val_img_path_extracted.txt",
         "val_every": 1000
     },
     "transformations":
