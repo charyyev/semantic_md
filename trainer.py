@@ -18,6 +18,7 @@ import os
 import time
 from tqdm import tqdm
 from collections import defaultdict
+import json
 
 
 class Trainer():
@@ -127,6 +128,12 @@ class Trainer():
         self.make_experiments_dirs()
         self.writer = SummaryWriter(log_dir=self.runs_dir)
 
+        # save config file
+        if not os.path.exists(os.path.join(self.exp_path, "config.json")):
+            config_json = json.dumps(self.config, indent = 4)
+            with open(os.path.join(self.exp_path, "config.json"), 'w') as outfile:
+                outfile.write(config_json)
+
         start_epoch = 0
         if self.config["resume_training"]:
             model_path = os.path.join(self.checkpoints_dir, str(self.config["resume_from"]) + "epoch")
@@ -204,6 +211,7 @@ class Trainer():
         self.checkpoints_dir = os.path.join(path, "checkpoints")
         self.best_checkpoints_dir = os.path.join(path, "best_checkpoints")
         self.runs_dir = os.path.join(path, "runs")
+        self.exp_path = path
 
         if not os.path.exists(self.checkpoints_dir):
             os.mkdir(self.checkpoints_dir)
