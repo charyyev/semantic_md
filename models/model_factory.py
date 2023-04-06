@@ -26,20 +26,7 @@ class ModelFactory:
                 "efficientnet_b3"),
             uefficientnet_b4=(
                 smp.Unet, {"encoder_name": "tu-efficientnet_b4", "encoder_weights": None, "activation": "sigmoid"},
-                "efficientnet_b4"),
-            deepresnet34=(
-            {"encoder_name": "tu-resnet34", "encoder_weights": None, "activation": "sigmoid"}, "resnet34"),
-            deepresnet50=(
-            {"encoder_name": "tu-resnet50", "encoder_weights": None, "activation": "sigmoid"}, "resnet50"),
-            deepefficientnet_b2=(
-                smp.DeepLabV3, {"encoder_name": "tu-efficientnet-b2", "encoder_weights": None, "activation": "sigmoid"},
-                "efficientnet_b2"),
-            deepefficientnet_b3=(
-                smp.DeepLabV3, {"encoder_name": "tu-efficientnet-b3", "encoder_weights": None, "activation": "sigmoid"},
-                "efficientnet_b3"),
-            deepefficientnet_b4=(
-                smp.DeepLabV3, {"encoder_name": "tu-efficientnet-b4", "encoder_weights": None, "activation": "sigmoid"},
-                "efficientnet_b4"),
+                "efficientnet_b4")
         )
 
     def get_model(self, model_type: str, pretrained_weights_path: str, in_channels: int = 3, classes: int = 1):
