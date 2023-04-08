@@ -232,9 +232,10 @@ class Trainer():
     def _data_flag_sanity_check(self):
         """
         Checks the data flags for compatibility. List of compatibilities:
-        (1) When semantic_convolution is set, neither concat nor onehot can be set (all methods to combine image + seg)
+        (1) When semantic_convolution is set, ["concat", "onehot", "border"]
         :return: Error if compatibility checks are failed
         """
         if self.config["data_flags"]["semantic_convolution"]:
-            if self.config["data_flags"]["concat"] or self.config["data_flags"]["onehot"]:
+            if self.config["data_flags"]["concat"] or self.config["data_flags"]["onehot"]\
+                    or self.config["data_flags"]["border"]:
                 raise ValueError("'concat' and 'onehot' data_flags cannot be set when 'semantic_convolution' is set.")

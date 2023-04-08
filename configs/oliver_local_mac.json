@@ -13,6 +13,7 @@
         "seg_classes": 40,
         "concat": false,
         "onehot": false,
+        "border": false,
         "semantic_convolution": true
     },
     "train":
