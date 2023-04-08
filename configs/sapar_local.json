@@ -13,7 +13,8 @@
     {
         "seg_classes": 40,
         "concat": false,
-        "onehot": false
+        "onehot": false,
+        "semantic_convolution": true
     },
     "train": 
     {

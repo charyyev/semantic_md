@@ -134,8 +134,6 @@ class HyperSimDataset(Dataset):
             nr_classes = self.data_flags["seg_classes"]
             identity_matrix = torch.eye(nr_classes).to(seg_tensor.device)
             seg_tensor = identity_matrix[seg_tensor.reshape(-1) - 1].reshape(seg_tensor.shape + (nr_classes,))
-        else:
-            seg_tensor = seg_tensor.unsqueeze(-1)
 
         if self.data_flags.get("concat", False):
             data_tensor = torch.cat((image_tensor, seg_tensor), dim=-1)

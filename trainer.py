@@ -28,6 +28,8 @@ class Trainer():
         self.prev_val_loss = 1e6
         self.epsilon = 1e-18
 
+        self._data_flag_sanity_check()
+
     def prepare_loaders(self):
         # aug_config = self.config["augmentation"]
 
@@ -58,8 +60,9 @@ class Trainer():
                 in_channels = 4
 
         pretrained_weights_path = os.path.join(self.config["root_dir"], "models", "pretrained_weights")
-        self.model, self.transform_config = ModelFactory().get_model(self.config["model"], pretrained_weights_path,
-                                                                     in_channels=in_channels, classes=1)
+        self.model, self.transform_config = ModelFactory() \
+            .get_model(self.config["model"], pretrained_weights_path, in_channels=in_channels, classes=1,
+                       semantic_convolution=self.config["data_flags"]["semantic_convolution"])
         self.model.to(self.device)
 
         # we have nan values in the target, therefore do not reduce and use self.nan_reduction instead
@@ -80,10 +83,14 @@ class Trainer():
         for data in tqdm(self.train_loader):
             image = data["image"].to(self.device)
             target = data["depths"].to(self.device)
+            semantic = data["segs"].to(self.device)
 
             self.optimizer.zero_grad()
 
-            pred = self.model(image)
+            if self.config["data_flags"]["semantic_convolution"]:
+                pred = self.model(image, semantic)
+            else:
+                pred = self.model(image)
             # clamp values to >0
             loss = self.loss(pred, target)
             loss = self.nan_reduction(loss)
@@ -130,7 +137,7 @@ class Trainer():
 
         # save config file
         if not os.path.exists(os.path.join(self.exp_path, "config.json")):
-            config_json = json.dumps(self.config, indent = 4)
+            config_json = json.dumps(self.config, indent=4)
             with open(os.path.join(self.exp_path, "config.json"), 'w') as outfile:
                 outfile.write(config_json)
 
@@ -221,3 +228,13 @@ class Trainer():
 
         if not os.path.exists(self.runs_dir):
             os.mkdir(self.runs_dir)
+
+    def _data_flag_sanity_check(self):
+        """
+        Checks the data flags for compatibility. List of compatibilities:
+        (1) When semantic_convolution is set, neither concat nor onehot can be set (all methods to combine image + seg)
+        :return: Error if compatibility checks are failed
+        """
+        if self.config["data_flags"]["semantic_convolution"]:
+            if self.config["data_flags"]["concat"] or self.config["data_flags"]["onehot"]:
+                raise ValueError("'concat' and 'onehot' data_flags cannot be set when 'semantic_convolution' is set.")
