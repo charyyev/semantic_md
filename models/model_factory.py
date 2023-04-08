@@ -43,6 +43,7 @@ class ModelFactory:
 
         if model_type == "unet":
             model = Unet(in_c=in_channels)
+            transforms = {"mean": (0, 0, 0), "std": (1, 1, 1)}
         else:
             model_func, kwargs, name = self.models[model_type]
             model = model_func(**kwargs, in_channels=in_channels, classes=classes)
