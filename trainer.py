@@ -61,7 +61,7 @@ class Trainer():
 
         pretrained_weights_path = os.path.join(self.config["root_dir"], "models", "pretrained_weights")
         self.model, self.transform_config = ModelFactory() \
-            .get_model(self.config["model"], pretrained_weights_path, in_channels=in_channels, classes=1,
+            .get_model(self.config["model"], pretrained_weights_path, in_channels=in_channels,
                        semantic_convolution=self.config["data_flags"]["semantic_convolution"])
         self.model.to(self.device)
 
