@@ -95,7 +95,7 @@ class Unet(nn.Module):
         u4 = self.up_block4(u3, c2)
         u5 = self.up_block5(u4, c1)
 
-        output = self.head(u5)
+        output = torch.sigmoid(self.head(u5))
 
         return output
     
