@@ -67,10 +67,11 @@ class Vis():
         cb.ax.tick_params(labelsize=25)
 
         # prediction
-        input_ = data["data"].unsqueeze(0)
+        input_ = data["image"].unsqueeze(0)
         pred = model(input_)
         pred = pred.detach().numpy().squeeze()
-        axes[1, 0].imshow(pred)
+        pred_vir = cm.viridis(pred)[:, :, :3]
+        axes[1, 0].imshow(pred_vir)
 
         # diff prediction ground truth
         diff = np.abs(img_depths - pred)  # TODO: abs or no

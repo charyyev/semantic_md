@@ -52,9 +52,11 @@ class ModelFactory:
             with open(metadata_path, "rb") as file:
                 pickled = pickle.load(file)
                 transforms = pickled
-            weights_path = os.path.join(pretrained_weights_path, name, "weights.pth")
-            weights_dict = torch.load(weights_path)
-            # we have additional weights in the saved weights (for classification and stuff), so we do strict = False
-            model.encoder.model.load_state_dict(weights_dict, strict=False)
+            # use pretrained only with image
+            if in_channels == 3:
+                weights_path = os.path.join(pretrained_weights_path, name, "weights.pth")
+                weights_dict = torch.load(weights_path)
+                # we have additional weights in the saved weights (for classification and stuff), so we do strict = False
+                model.encoder.model.load_state_dict(weights_dict, strict=False)
 
         return model, transforms

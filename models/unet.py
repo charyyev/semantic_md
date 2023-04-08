@@ -102,7 +102,7 @@ class Unet(nn.Module):
 
 
 if __name__ == "__main__":
-    x = torch.rand((1, 3, 768, 576))
-    model = Unet(in_c = 3)
+    x = torch.rand((1, 4, 768, 576))
+    model = Unet(in_c = 4)
     pred = model(x)
     

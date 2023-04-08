@@ -1,8 +1,8 @@
 {
-    "model": "uefficientnet_b3",
-    "date": "06-04-2023",
+    "model": "uefficientnet_b2",
+    "date": "08-04-2023",
     "ver": 1,
-    "note": "",
+    "note": "border",
     "device": "cpu",
     "resume_training": false,
     "resume_from": 0,
@@ -12,24 +12,25 @@
     "data_flags":
     {
         "seg_classes": 40,
-        "concat": false,
-        "onehot": false
+        "concat": true,
+        "onehot": false,
+        "border": true
     },
     "train": 
     {
         "batch_size": 4,
         "learning_rate": 0.001,
-        "epochs": 10,
+        "epochs": 500,
         "weight_decay": 0.0001,
         "lr_decay_at": [50, 250, 1000],
         "save_every": 1,
-        "data": "/home/sapar/3dvision/data/list/train.txt"
+        "data": "/home/sapar/3dvision/data/list/overfit.txt"
         
     },
     "val": 
     {
         "batch_size": 4,
-        "data": "/home/sapar/3dvision/data/list/val.txt",
+        "data": "/home/sapar/3dvision/data/list/overfit.txt",
         "val_every": 1
     },
     "transformations":
@@ -53,5 +54,9 @@
             "limit_scale": [0.8, 1],
             "use": true
         }
+    },
+    "load":
+    {
+        "path": "/home/sapar/experiments/3dvision/unet_08-04-2023_border_v5/checkpoints/126epoch.pth"
     }
 }

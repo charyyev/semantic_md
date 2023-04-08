@@ -7,6 +7,9 @@ from utils.config import args_and_config
 from torchvision.transforms import transforms
 import random
 
+from utils.conversions import semantic_to_border
+from utils.transforms import compute_transforms
+
 '''
 HyperSim_Data
 |
@@ -124,33 +127,39 @@ class HyperSimDataset(Dataset):
         image_np = np.load(current_image_path)
         depth_np = np.load(current_depth_path)
         seg_np = np.load(current_seg_path)
-
+        
         original_image_tensor = transforms.ToTensor()(image_np)
         image_tensor = self.image_transform(image_np).float()
         depth_tensor = self.depth_transform(depth_np).float()
         seg_tensor = self.seg_transform(seg_np).float()
-
+        
         if self.data_flags.get("onehot", False):
             nr_classes = self.data_flags["seg_classes"]
             identity_matrix = torch.eye(nr_classes).to(seg_tensor.device)
             seg_tensor = identity_matrix[seg_tensor.reshape(-1) - 1].reshape(seg_tensor.shape + (nr_classes,))
-        else:
-            seg_tensor = seg_tensor.unsqueeze(-1)
+        elif self.data_flags.get("border", False):
+            seg_tensor = torch.from_numpy(semantic_to_border(seg_tensor.squeeze().numpy())).unsqueeze(0).float()
+
 
         if self.data_flags.get("concat", False):
-            data_tensor = torch.cat((image_tensor, seg_tensor), dim=-1)
-        else:
-            data_tensor = image_tensor.clone()
-
-        return {"data": data_tensor, "image": image_tensor, "depths": depth_tensor, "segs": seg_tensor,
+            image_tensor = torch.cat((image_tensor, seg_tensor), dim=0)
+        
+        return {"image": image_tensor, "depths": depth_tensor, "segs": seg_tensor,
                 "original_image": original_image_tensor}
 
+    
 
 def main():
     config = args_and_config()
     dataset_root_dir = config["data_location"]
-    dataset = HyperSimDataset(root_dir=dataset_root_dir, file_path=config["train"]["data"])
+    transform_config = {"mean": (0, 0, 0), "std": (1, 1, 1)}
+    image_transform, depth_transform, seg_transform = compute_transforms(transform_config, config)
+    dataset = HyperSimDataset(root_dir=dataset_root_dir, file_path=config["train"]["data"],
+                              image_transform=image_transform, depth_transform=depth_transform,
+                              seg_transform=seg_transform, data_flags=config["data_flags"])
 
+    for data in dataset:
+        continue
 
 if __name__ == '__main__':
     main()
