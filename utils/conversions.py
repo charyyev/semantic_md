@@ -1,5 +1,18 @@
 import numpy as np
 import cv2
+import torch
+
+def simplified_encode(seg_tensor):
+    ''' 
+    Semantic labels are 1-40(inclusive), no 0 present, -1 means unlabeled: https://github.com/apple/ml-hypersim/issues/12 
+    Semantic labels1 (1:Wall, 2:Floor) -> https://github.com/apple/ml-hypersim/blob/main/code/cpp/tools/scene_annotation_tool/semantic_label_descs.csv
+    '''
+    tensor_wall = torch.eq(seg_tensor, 1).float()
+    tensor_floor = torch.eq(seg_tensor, 2).float()
+    tensor_other = (torch.ne(seg_tensor, 1) & torch.ne(seg_tensor, 2)).float()
+    seg_encoded = torch.stack((tensor_wall, tensor_floor, tensor_other), dim=0)
+    return torch.squeeze(seg_encoded)
+
 
 def semantic_to_border(seg):
     kernel = np.ones((3,3), np.uint8)
@@ -62,3 +75,21 @@ def semantic_to_color(seg):
         seg_img[seg == i, :] = color_map[i]
     
     return seg_img
+
+def test():
+
+    # create an example 3D tensor with seg tensor values
+    seg_tensor = torch.tensor([[[-1., 1., 2., 35.],
+                          [1., 20., 10., 1.],
+                          [15., 2., 2., -1.]]])
+
+    print(seg_tensor)
+    print(seg_tensor.shape)
+    seg_encoded = simplified_encode(seg_tensor)
+    print(seg_encoded)
+    print(seg_encoded.shape)
+
+
+
+if __name__ == '__main__':
+    test()
