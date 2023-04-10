@@ -7,7 +7,7 @@ from utils.config import args_and_config
 from torchvision.transforms import transforms
 import random
 
-from utils.conversions import semantic_to_border
+from utils.conversions import semantic_to_border, simplified_encode
 from utils.transforms import compute_transforms
 
 '''
@@ -139,9 +139,10 @@ class HyperSimDataset(Dataset):
             seg_tensor = identity_matrix[seg_tensor.reshape(-1) - 1].reshape(seg_tensor.shape + (nr_classes,))
         elif self.data_flags.get("border", False):
             seg_tensor = torch.from_numpy(semantic_to_border(seg_tensor.squeeze().numpy())).unsqueeze(0).float()
-
-
-        if self.data_flags.get("concat", False):
+        elif self.data_flags.get("simplified_onehot", False):
+            seg_tensor = simplified_encode(seg_tensor)
+            image_tensor = torch.cat((image_tensor, seg_tensor), dim=0)
+        elif self.data_flags.get("concat", False):
             image_tensor = torch.cat((image_tensor, seg_tensor), dim=0)
 
         return {"image": image_tensor, "depths": depth_tensor, "segs": seg_tensor,

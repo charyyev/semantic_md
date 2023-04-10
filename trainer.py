@@ -236,4 +236,4 @@ def data_flag_sanity_check(data_flags):
     value_list = [int(v) for (k, v) in data_flags.items() if k not in ["seg_classes"]]
     if sum(value_list) > 1:
         raise ValueError(
-            f"Only one of ['concat', 'onehot', 'border', 'semantic_convolution'] can be true. Is {data_flags}")
+            f"Only one of ['concat', 'onehot', 'border', 'semantic_convolution', 'simplified_onehot'] can be true. Is {data_flags}")
