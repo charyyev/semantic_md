@@ -26,7 +26,7 @@ class Trainer():
         self.config = config
         self.device = config["device"]
         self.prev_val_loss = 1e6
-        self.epsilon = 1e-18
+        self.epsilon = 1e-4
 
         self._data_flag_sanity_check()
 
@@ -134,6 +134,7 @@ class Trainer():
         print("creating experiment log directories...")
         self.make_experiments_dirs()
         self.writer = SummaryWriter(log_dir=self.runs_dir)
+        self.writer = SummaryWriter(log_dir=self.tensorboard_dir)
 
         # save config file
         if not os.path.exists(os.path.join(self.exp_path, "config.json")):
@@ -218,6 +219,7 @@ class Trainer():
         self.checkpoints_dir = os.path.join(path, "checkpoints")
         self.best_checkpoints_dir = os.path.join(path, "best_checkpoints")
         self.runs_dir = os.path.join(path, "runs")
+        self.tensorboard_dir = os.path.join(self.config["experiments"], "tensorboard", base + str(version))
         self.exp_path = path
 
         if not os.path.exists(self.checkpoints_dir):
@@ -228,6 +230,9 @@ class Trainer():
 
         if not os.path.exists(self.runs_dir):
             os.mkdir(self.runs_dir)
+        
+        if not os.path.exists(self.tensorboard_dir):
+            os.mkdir(self.tensorboard_dir)
 
     def _data_flag_sanity_check(self):
         """
