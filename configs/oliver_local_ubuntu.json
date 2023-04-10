@@ -14,7 +14,8 @@
         "concat": false,
         "onehot": false,
         "border": false,
-        "semantic_convolution": true
+        "semantic_convolution": true,
+        "simplified_onehot": false
     },
     "train": 
     {

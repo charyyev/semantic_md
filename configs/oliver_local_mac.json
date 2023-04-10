@@ -1,5 +1,5 @@
 {
-    "model": "uresnet34",
+    "model": "uefficientnet_b4",
     "date": "2023-04-05",
     "note": "overfit",
     "device": "cpu",
@@ -11,10 +11,11 @@
     "data_flags":
     {
         "seg_classes": 40,
-        "concat": false,
+        "concat": true,
         "onehot": false,
         "border": false,
-        "semantic_convolution": true
+        "semantic_convolution": false,
+        "simplified_onehot": false
     },
     "train":
     {
@@ -56,6 +57,6 @@
     },
     "load":
     {
-        "path": ""
+        "path": "/Users/oliverlemke/Documents/University/2023/ext-projects/semantic_md/models/local_weights/uefficientnet_b4_2023-04-06_baseline_v1/checkpoints/20epoch.pth"
     }
 }
