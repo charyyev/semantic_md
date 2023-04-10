@@ -28,7 +28,7 @@ class Trainer():
         self.prev_val_loss = 1e6
         self.epsilon = 1e-4
 
-        self._data_flag_sanity_check()
+        data_flag_sanity_check(self.config["data_flags"])
 
     def prepare_loaders(self):
         # aug_config = self.config["augmentation"]
@@ -52,17 +52,9 @@ class Trainer():
         weight_decay = self.config["train"]["weight_decay"]
         epochs = self.config["train"]["epochs"]
 
-        in_channels = 3
-        if self.config["data_flags"]["concat"]:
-            if self.config["data_flags"]["onehot"]:
-                in_channels = 3 + self.config["data_flags"]["seg_classes"]
-            else:
-                in_channels = 4
-
         pretrained_weights_path = os.path.join(self.config["root_dir"], "models", "pretrained_weights")
         self.model, self.transform_config = ModelFactory() \
-            .get_model(self.config["model"], pretrained_weights_path, in_channels=in_channels,
-                       semantic_convolution=self.config["data_flags"]["semantic_convolution"])
+            .get_model(self.config["model"], pretrained_weights_path, self.config, in_channels=3)
         self.model.to(self.device)
 
         # we have nan values in the target, therefore do not reduce and use self.nan_reduction instead
@@ -234,13 +226,14 @@ class Trainer():
         if not os.path.exists(self.tensorboard_dir):
             os.mkdir(self.tensorboard_dir)
 
-    def _data_flag_sanity_check(self):
-        """
-        Checks the data flags for compatibility. List of compatibilities:
-        (1) When semantic_convolution is set, ["concat", "onehot", "border"]
-        :return: Error if compatibility checks are failed
-        """
-        if self.config["data_flags"]["semantic_convolution"]:
-            if self.config["data_flags"]["concat"] or self.config["data_flags"]["onehot"]\
-                    or self.config["data_flags"]["border"]:
-                raise ValueError("'concat' and 'onehot' data_flags cannot be set when 'semantic_convolution' is set.")
+
+def data_flag_sanity_check(data_flags):
+    """
+    Checks the data flags for compatibility. List of compatibilities:
+    (1) Only one of ["concat", "onehot", "border", "semantic_convolution"]
+    :return: Error if compatibility checks are failed
+    """
+    value_list = [int(v) for (k, v) in data_flags.items() if k not in ["seg_classes"]]
+    if sum(value_list) > 1:
+        raise ValueError(
+            f"Only one of ['concat', 'onehot', 'border', 'semantic_convolution'] can be true. Is {data_flags}")

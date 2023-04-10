@@ -134,7 +134,7 @@ if __name__ == "__main__":
 
     pretrained_weights_path = os.path.join(config["root_dir"], "models", "pretrained_weights")
     model, transform_config = ModelFactory().get_model(config["model"], pretrained_weights_path,
-                                                       in_channels=in_channels, classes=1)
+                                                       in_channels=in_channels)
     model.to(config["device"])
     image_transform, depth_transform, seg_transform = compute_transform = compute_transforms(transform_config, config)
 
@@ -144,7 +144,7 @@ if __name__ == "__main__":
 
     model_path = config["load"].get("path", None)
     if not (model_path is None or model_path.strip() == ""):
-        checkpoint = torch.load(model_path)
+        checkpoint = torch.load(model_path, map_location=torch.device(config["device"]))
         model.load_state_dict(checkpoint)
     model.eval()
 

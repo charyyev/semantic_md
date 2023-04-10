@@ -12,10 +12,11 @@
     "data_flags":
     {
         "seg_classes": 40,
-        "concat": true,
+        "concat": false,
         "onehot": false,
-        "border": true,
-        "semantic_convolution": true
+        "border": false,
+        "semantic_convolution": true,
+        "simplified_onehot": false
     },
     "train": 
     {
