@@ -3,6 +3,7 @@ import pickle
 
 import segmentation_models_pytorch as smp
 import torch
+import torchvision
 
 from models.unet import Unet
 
@@ -79,9 +80,10 @@ class ModelFactory:
             # if it is a smp model with timm encoder, it can only handle pretrained weights with 3 input channels
             # therefore we have to manually extend the input_channels via the below function
             if type_desc == "timm_smp" and in_channels > 3:
-                pretrained_conv1 = model.encoder.model.conv1
+                # pretrained_conv1 = model.encoder.model.conv1
+                pretrained_conv1 = model.encoder.model.conv_stem
                 add_out_channels = in_channels - 3
-                model = _extend_first_convolution(model, pretrained_conv1, _timm_set_conv1_func, add_out_channels)
+                model = _extend_first_convolution(model, pretrained_conv1, _resnet_set_conv1_func, add_out_channels)
 
         if semantic_convolution:
             model = SemanticConvolutionModel(model, semantic_out_channels=in_channels)
@@ -120,8 +122,13 @@ def _extend_first_convolution(pretrained_model, pretrained_conv1, set_conv1_func
     return pretrained_model
 
 
-def _timm_set_conv1_func(pretrained_model, conv1):
+def _resnet_set_conv1_func(pretrained_model, conv1):
     pretrained_model.encoder.model.conv1 = conv1
+    return pretrained_model
+
+
+def _efficientnet_set_conv1_func(pretrained_model, conv1):
+    pretrained_model.encoder.model.conv_stem = conv1
     return pretrained_model
 
 
@@ -129,15 +136,31 @@ class SemanticConvolutionModel(torch.nn.Module):
     def __init__(self, pretrained_model, semantic_out_channels):
         super(SemanticConvolutionModel, self).__init__()
         self.pre_trained_model = pretrained_model
-        pretrained_conv1 = self.pre_trained_model.encoder.model.conv1
-        self.model = _extend_first_convolution(pretrained_model, pretrained_conv1, _timm_set_conv1_func,
+        # pretrained_conv1 = self.pre_trained_model.encoder.model.conv1
+        pretrained_conv1 = self.pre_trained_model.encoder.model.conv_stem
+        self.model = _extend_first_convolution(pretrained_model, pretrained_conv1, _efficientnet_set_conv1_func,
                                                semantic_out_channels)
-        self.conv = torch.nn.Conv2d(in_channels=1, out_channels=semantic_out_channels, kernel_size=3, padding=1)
-        self.sig = torch.nn.Sigmoid()
+
+        mbconv_config = torchvision.models.efficientnet.MBConvConfig(
+            expand_ratio=6, kernel=3, stride=1, input_channels=1, out_channels=semantic_out_channels, num_layers=1,
+            width_mult=1.4, depth_mult=1.8
+        )
+        self.convolution = torch.nn.Sequential(
+            torch.nn.Conv2d(in_channels=1, out_channels=8, kernel_size=3, stride=1, padding=1, bias=False),
+            torch.nn.BatchNorm2d(num_features=8),
+            torchvision.models.efficientnet.MBConv(mbconv_config, 0.2, torch.nn.BatchNorm2d),
+            torch.nn.Conv2d(in_channels=8, out_channels=semantic_out_channels, kernel_size=1, stride=1, bias=False),
+            torch.nn.BatchNorm2d(num_features=semantic_out_channels),
+            torch.nn.Sigmoid()
+        )
+        # Alternative convolution
+        # self.convolution = torch.nn.Sequential(
+        #     torch.nn.Conv2d(in_channels=1, out_channels=3, kernel_size=3, stride=1, padding=1),
+        #     torch.nn.Sigmoid()
+        # )
 
     def forward(self, image, semantic_map):
-        semantic_map_conv = self.conv(semantic_map)
-        semantic_map_conv = self.sig(semantic_map_conv)
+        semantic_map_conv = self.convolution(semantic_map)
         cat = torch.cat([image, semantic_map_conv], dim=1)
         out = self.model(cat)
         return out
