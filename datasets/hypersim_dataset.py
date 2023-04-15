@@ -139,10 +139,12 @@ class HyperSimDataset(Dataset):
             seg_tensor = identity_matrix[seg_tensor.reshape(-1) - 1].reshape(seg_tensor.shape + (nr_classes,))
         elif self.data_flags.get("border", False):
             seg_tensor = torch.from_numpy(semantic_to_border(seg_tensor.squeeze().numpy())).unsqueeze(0).float()
+            image_tensor = torch.cat((image_tensor, seg_tensor), dim=0)
         elif self.data_flags.get("simplified_onehot", False):
-            seg_tensor = simplified_encode(seg_tensor)
+            seg_tensor = simplified_encode_4(seg_tensor)
             image_tensor = torch.cat((image_tensor, seg_tensor), dim=0)
         elif self.data_flags.get("concat", False):
+            seg_tensor = semantic_norm(seg_tensor, self.data_flags["seg_classes"])
             image_tensor = torch.cat((image_tensor, seg_tensor), dim=0)
 
         return {"image": image_tensor, "depths": depth_tensor, "segs": seg_tensor,
