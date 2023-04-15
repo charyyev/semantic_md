@@ -23,6 +23,7 @@ class Vis():
         nrows, ncols = 2, 3
 
         figsize = 1920 / 100, 1080 / 100
+        # figsize = 1200 / 100, 800 / 100
         self.fig, self.axes = plt.subplots(nrows=nrows, ncols=ncols, figsize=figsize)
         for row in range(nrows):
             for col in range(ncols):
@@ -39,7 +40,13 @@ class Vis():
 
         self.update_image()
 
+    def _remove_texts(self):
+        for ax in list(self.axes.flatten()):
+            for text in ax.texts:
+                text.remove()
+
     def update_image(self):
+        self._remove_texts()
         data = self.dataset[self.index]
 
         # Original image
@@ -67,19 +74,29 @@ class Vis():
         self.fig.canvas.title = f"Image {self.index}"
         self.fig.canvas.draw()
 
+    def _save_image(self):
+        base_path = self.config["visualize"]["save_path"]
+        os.makedirs(base_path, exist_ok=True)
+        file_name = os.path.join(base_path, f"Image_{self.index}")
+        plt.savefig(file_name)
+        self.axes[0, 0].text(0, -60, "Saved", bbox=dict(facecolor='grey', alpha=0.5), fontsize=20)
+        plt.draw()
+
     def on_key_press(self, event):
-        if event.key == 'q':
-            self.update_image()
-        if event.key == 'right':
+        if event.key == 'right' or event.key == 'd':
             if self.index < len(self.dataset) - 1:
                 self.index += 1
             self.update_image()
-        elif event.key == 'left':
+        elif event.key == 'left' or event.key == 'a':
             if self.index > 0:
                 self.index -= 1
             self.update_image()
         elif event.key == 'q':
             self.destroy()
+        elif event.key == ' ':  # space bar
+            self._save_image()
+        else:
+            UserWarning(f"Key is not mapped to function: {event.key}")
 
     def destroy(self):
         plt.close(self.fig)
@@ -104,7 +121,7 @@ if __name__ == "__main__":
                                                image_transform=image_transform, depth_transform=depth_transform,
                                                seg_transform=seg_transform, data_flags=config["data_flags"])
 
-    model_path = config["load"].get("path", None)
+    model_path = config["visualize"].get("model_path", None)
     if not (model_path is None or model_path.strip() == ""):
         checkpoint = torch.load(model_path, map_location=torch.device(config["device"]))
         model.load_state_dict(checkpoint)
