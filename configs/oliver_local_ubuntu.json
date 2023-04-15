@@ -55,8 +55,9 @@
             "use": true
         }
     },
-    "load":
+    "visualize":
     {
-        "path": "/home/oliver/Documents/University/2023/ext-projects/semantic_md/experiments/uefficientnet_b3_2023-04-05_overfit_v8/checkpoints/55epoch.pth"
+        "model_path": "",
+        "save_path": "/home/oliver/Documents/University/2023/ext-projects/semantic_md/saved_figures/"
     }
 }
