@@ -1,4 +1,6 @@
 import os
+import sys
+sys.path.insert(0, '/media/ankitaghosh/Data/ETH/3DVision/semantic_md')
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -20,7 +22,7 @@ class Vis():
         self.dataset = dataset
         self.model = model
         self.config = config
-        nrows, ncols = 2, 3
+        nrows, ncols = 2, 4
 
         figsize = 1920 / 100, 1080 / 100
         # figsize = 1200 / 100, 800 / 100
@@ -30,13 +32,13 @@ class Vis():
                 self.axes[row][col].axis("off")
         self.fig.canvas.mpl_connect('key_press_event', self.on_key_press)
 
-        # colorbar
-        min_depth, max_depth = self.config["transformations"]["depth_range"]
-        norm = plt.Normalize(vmin=min_depth, vmax=max_depth)
-        sm = cm.ScalarMappable(cmap='viridis', norm=norm)
-        sm.set_array([])
-        cb = self.fig.colorbar(sm, ax=self.axes[:, 2], fraction=0.9, aspect=2, ticks=[0, max_depth / 2, max_depth])
-        cb.ax.tick_params(labelsize=25)
+        # # colorbar
+        # min_depth, max_depth = self.config["transformations"]["depth_range"]
+        # norm = plt.Normalize(vmin=min_depth, vmax=max_depth)
+        # sm = cm.ScalarMappable(cmap='viridis', norm=norm)
+        # sm.set_array([])
+        # cb = self.fig.colorbar(sm, ax=self.axes[:, 2], fraction=0.9, aspect=2, ticks=[0, max_depth / 2, max_depth])
+        # cb.ax.tick_params(labelsize=25)
 
         self.update_image()
 
@@ -51,11 +53,34 @@ class Vis():
 
         # Original image
         image = data["original_image"].permute((1, 2, 0)).numpy()
+        self.axes[0, 0].set_title("image")
         self.axes[0, 0].imshow(image)
 
         # Depths
         depths = data["depths"].squeeze().numpy()
+        self.axes[0, 1].set_title("depth map")
         self.axes[0, 1].imshow(depths, cmap="viridis")
+
+        #segmentation
+        segs = data["original_seg"].squeeze().numpy()
+        #img_segs = (np.clip(segs, 0, config["data_flags"]["seg_classes"]) / config["data_flags"]["seg_classes"] * 255).astype(int)
+        img_segs = (np.clip(segs, 0, config["data_flags"]["seg_classes"])).astype(int)
+        img_segs_vir = cm.tab20b(img_segs)
+        self.axes[0, 2].set_title("semantic map")
+        self.axes[0, 2].imshow(img_segs_vir)
+
+        #seg post-processing
+        segs_post = data["segs"].squeeze().numpy()
+        if config["data_flags"]["border"]:
+            img_segs_post = cm.tab20b(segs_post)[:, :, :3]
+            self.axes[0, 3].set_title("border")
+            self.axes[0, 3].imshow(img_segs_post)
+        elif config["data_flags"]["simplified_onehot"]:
+            segs_post = (np.argmax(segs_post, axis=0).astype(int)/3 * 255).astype(int)
+            img_segs_post = cm.viridis(segs_post)
+            self.axes[0, 3].set_title("3-encoded")
+            self.axes[0, 3].imshow(img_segs_post)
+
 
         # Prediction
         input_ = data["image"].unsqueeze(0)
@@ -65,10 +90,12 @@ class Vis():
         else:
             pred = model(input_)
         pred = pred.detach().numpy().squeeze()
+        self.axes[1, 0].set_title("prediction")
         self.axes[1, 0].imshow(pred, cmap="viridis")
 
         # Diff prediction ground truth
         diff = np.abs(depths - pred)
+        self.axes[1, 1].set_title("difference")
         self.axes[1, 1].imshow(diff, cmap="viridis")
 
         self.fig.canvas.title = f"Image {self.index}"

@@ -7,7 +7,7 @@ from utils.config import args_and_config
 from torchvision.transforms import transforms
 import random
 
-from utils.conversions import semantic_to_border, simplified_encode
+from utils.conversions import semantic_to_border, simplified_encode_3, simplified_encode_4, semantic_norm
 from utils.transforms import compute_transforms
 
 '''
@@ -132,6 +132,8 @@ class HyperSimDataset(Dataset):
         image_tensor = self.image_transform(image_np).float()
         depth_tensor = self.depth_transform(depth_np).float()
         seg_tensor = self.seg_transform(seg_np).float()
+        original_seg_tensor = seg_tensor
+
 
         if self.data_flags.get("onehot", False):
             nr_classes = self.data_flags["seg_classes"]
@@ -141,14 +143,17 @@ class HyperSimDataset(Dataset):
             seg_tensor = torch.from_numpy(semantic_to_border(seg_tensor.squeeze().numpy())).unsqueeze(0).float()
             image_tensor = torch.cat((image_tensor, seg_tensor), dim=0)
         elif self.data_flags.get("simplified_onehot", False):
-            seg_tensor = simplified_encode_4(seg_tensor)
+            if self.data_flags["simplified_onehot_channels"]==3:
+                seg_tensor = simplified_encode_3(seg_tensor)
+            elif self.data_flags["simplified_onehot_channels"]==4:
+                seg_tensor = simplified_encode_4(seg_tensor)
             image_tensor = torch.cat((image_tensor, seg_tensor), dim=0)
         elif self.data_flags.get("concat", False):
             seg_tensor = semantic_norm(seg_tensor, self.data_flags["seg_classes"])
             image_tensor = torch.cat((image_tensor, seg_tensor), dim=0)
 
         return {"image": image_tensor, "depths": depth_tensor, "segs": seg_tensor,
-                "original_image": original_image_tensor}
+                "original_image": original_image_tensor, "original_seg": original_seg_tensor}
 
 
 

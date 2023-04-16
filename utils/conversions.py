@@ -2,7 +2,7 @@ import numpy as np
 import cv2
 import torch
 
-def simplified_encode(seg_tensor):
+def simplified_encode_3(seg_tensor):
     ''' 
     Semantic labels are 1-40(inclusive), no 0 present, -1 means unlabeled: https://github.com/apple/ml-hypersim/issues/12 
     Semantic labels1 (1:Wall, 2:Floor) -> https://github.com/apple/ml-hypersim/blob/main/code/cpp/tools/scene_annotation_tool/semantic_label_descs.csv
