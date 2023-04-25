@@ -1,16 +1,21 @@
 import os
+import random
 
 import numpy as np
 import torch
 from torch.utils.data import Dataset
 from torchvision.transforms import transforms
-import random
+
 import cv2
 
-from source.utils.conversions import semantic_to_border, simplified_encode_3, \
-    simplified_encode_4, semantic_norm
+from source.utils.conversions import (
+    semantic_norm,
+    semantic_to_border,
+    simplified_encode_3,
+    simplified_encode_4,
+)
 
-'''
+"""
 HyperSim_Data
 |
 ├── image
@@ -42,21 +47,27 @@ replace-- /image/ with /depth/ ; _final_hdf5 with _geometry_hdf5 ; color.hdf5 wi
 Semantic Path = ROOTDIR/HyperSim_Data/semantic/ai_xxx_xxx/images/cene_cam_00_geometry_hdf5/frame.yyyy.semantic.hdf5
 replace-- /image/ with /semantic/ ; _final_hdf5 with _geometry_hdf5 ; color.hdf5 with semantic.hdf5
 
-'''
+"""
 
 
 class HyperSimDataset(Dataset):
-    def __init__(self, data_dir, file_path='', image_transform=None,
-                 depth_transform=None, seg_transform=None,
-                 data_flags=None):
-        '''
+    def __init__(
+        self,
+        data_dir,
+        file_path="",
+        image_transform=None,
+        depth_transform=None,
+        seg_transform=None,
+        data_flags=None,
+    ):
+        """
         Dataset class for HyperSim
         :param data_dir: the root directory of the dataset, which contains the uncompressed data
         :param train: train or test set
         :param test_split: percentage of dataset to use as test set [0, 1]
         :param transform: transform functions
         :param data_flags: "concat" to additionally get image+seg concatenated, "onehot" for one-hot encoding of seg
-        '''
+        """
         self.random_seed = 0
         self.data_dir = data_dir
         self.image_transform = image_transform
@@ -72,46 +83,54 @@ class HyperSimDataset(Dataset):
             self.seg_transform = transforms.ToTensor()
 
         if self.data_flags is None:
-            self.data_flags = dict()
+            self.data_flags = {}
 
         random.seed(self.random_seed)
         np.random.seed()
 
-        self.image_paths = []
-        self.depth_paths = []
-        self.seg_paths = []
+        image_paths = []
+        depth_paths = []
+        seg_paths = []
 
-        if file_path == '':
+        if file_path == "":
             print("File path not given for loading data...")
-        with open(file_path, 'r') as file:
+        with open(file_path, "r", encoding="UTF-8") as file:
             for line in file:
-                imgPath = os.path.join(self.data_dir, line.replace('\n', ''))
-                depthPath = os.path.join(self.data_dir,
-                                         imgPath.replace('/image/', '/depth/')
-                                         .replace('_final_hdf5', '_geometry_hdf5')
-                                         .replace('color.npy', 'depth_meters.npy'))
-                semPath = os.path.join(self.data_dir,
-                                       imgPath.replace('/image/', '/semantic/')
-                                       .replace('_final_hdf5', '_geometry_hdf5')
-                                       .replace('color.npy', 'semantic.npy'))
+                imgPath = os.path.join(self.data_dir, line.replace("\n", ""))
+                depthPath = os.path.join(
+                    self.data_dir,
+                    imgPath.replace("/image/", "/depth/")
+                    .replace("_final_hdf5", "_geometry_hdf5")
+                    .replace("color.npy", "depth_meters.npy"),
+                )
+                semPath = os.path.join(
+                    self.data_dir,
+                    imgPath.replace("/image/", "/semantic/")
+                    .replace("_final_hdf5", "_geometry_hdf5")
+                    .replace("color.npy", "semantic.npy"),
+                )
 
-                if os.path.exists(imgPath) and os.path.exists(
-                        depthPath) and os.path.exists(semPath):
-                    self.image_paths.append(imgPath)
-                    self.depth_paths.append(depthPath)
-                    self.seg_paths.append(semPath)
+                if (
+                    os.path.exists(imgPath)
+                    and os.path.exists(depthPath)
+                    and os.path.exists(semPath)
+                ):
+                    image_paths.append(imgPath)
+                    depth_paths.append(depthPath)
+                    seg_paths.append(semPath)
                 else:
                     print(imgPath)
 
         # assert length of all is the same
-        assert len(self.image_paths) == len(self.depth_paths) == len(self.seg_paths)
+        assert len(image_paths) == len(depth_paths) == len(seg_paths)
 
         # shuffle all arrays (determined by random seed), relative order stays the same
-        self.image_paths = np.array(self.image_paths)
-        self.depth_paths = np.array(self.depth_paths)
-        self.seg_paths = np.array(self.seg_paths)
+        self.image_paths = np.array(image_paths)
+        self.depth_paths = np.array(depth_paths)
+        self.seg_paths = np.array(seg_paths)
         self.paths = np.column_stack(
-            (self.image_paths, self.depth_paths, self.seg_paths))
+            (self.image_paths, self.depth_paths, self.seg_paths)
+        )
 
         # Print images with infinity values, TODO: delete
         # for image_path in self.image_paths:
@@ -143,10 +162,14 @@ class HyperSimDataset(Dataset):
             nr_classes = self.data_flags["seg_classes"]
             identity_matrix = torch.eye(nr_classes).to(seg_tensor.device)
             seg_tensor = identity_matrix[seg_tensor.reshape(-1) - 1].reshape(
-                seg_tensor.shape + (nr_classes,))
+                seg_tensor.shape + (nr_classes,)
+            )
         elif self.data_flags["type"] == "border":
-            seg_tensor = torch.from_numpy(
-                semantic_to_border(seg_tensor.squeeze().numpy())).unsqueeze(0).float()
+            seg_tensor = (
+                torch.from_numpy(semantic_to_border(seg_tensor.squeeze().numpy()))
+                .unsqueeze(0)
+                .float()
+            )
             image_tensor = torch.cat((image_tensor, seg_tensor), dim=0)
         elif self.data_flags["type"] == "simplified_onehot":
             if self.data_flags["simplified_onehot_channels"] == 3:
@@ -158,9 +181,13 @@ class HyperSimDataset(Dataset):
             seg_tensor = semantic_norm(seg_tensor, self.data_flags["seg_classes"])
             image_tensor = torch.cat((image_tensor, seg_tensor), dim=0)
 
-        return {"image": image_tensor, "depths": depth_tensor, "segs": seg_tensor,
-                "original_image": original_image_tensor,
-                "original_seg": original_seg_tensor}
+        return {
+            "image": image_tensor,
+            "depths": depth_tensor,
+            "segs": seg_tensor,
+            "original_image": original_image_tensor,
+            "original_seg": original_seg_tensor,
+        }
 
 
 def compute_transforms(transform_config, config):
@@ -172,19 +199,15 @@ def compute_transforms(transform_config, config):
     new_width, new_height = new_size["width"], new_size["height"]
 
     def resize(input_):
-        return cv2.resize(input_, (new_width, new_height),
-                          interpolation=cv2.INTER_NEAREST)
+        return cv2.resize(
+            input_, (new_width, new_height), interpolation=cv2.INTER_NEAREST
+        )
 
-    base_transform = (
-        transforms.ToTensor(),
-    )
+    base_transform = (transforms.ToTensor(),)
 
     def image_transform(input_):
         x = resize(input_)
-        tf = transforms.Compose([
-            *base_transform,
-            transforms.Normalize(mean, std)
-        ])
+        tf = transforms.Compose([*base_transform, transforms.Normalize(mean, std)])
         return tf(x)
 
     def depth_transform(input_):
