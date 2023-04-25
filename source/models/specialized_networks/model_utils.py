@@ -1,10 +1,17 @@
+from collections.abc import Callable
+
 from torch import nn
 
 
-def extend_first_convolution(pretrained_model, additional_out_channels, get_conv1_func, set_conv1_func):
+def extend_first_convolution(
+    pretrained_model: nn.Module,
+    additional_out_channels: int,
+    get_conv1_func: Callable,
+    set_conv1_func: Callable,
+):
     """
-    This function extends to initial convolution of a model to more input channels, while keeping the pretrained weights
-    for the non-new parts of the convolution.
+    This function extends to initial convolution of a model to more input channels,
+    while keeping the pretrained weights for the non-new parts of the convolution.
     :param pretrained_model: The pretrained model to be extended
     :param additional_out_channels:  Number of channels by which the convolution should be extended
     :param get_conv1_func: A function that allows access to the first convolution via get_conv1_func(pretrained_model)
@@ -18,13 +25,19 @@ def extend_first_convolution(pretrained_model, additional_out_channels, get_conv
     # Initialize only the weights of the first 3 channels with the pre-trained weights
     # Create exact same convolution
     in_channels = pretrained_conv1.in_channels + additional_out_channels
-    own_conv1 = nn.Conv2d(in_channels=in_channels, out_channels=pretrained_conv1.out_channels,
-                          kernel_size=pretrained_conv1.kernel_size, stride=pretrained_conv1.stride,
-                          padding=pretrained_conv1.padding, bias=pretrained_conv1.bias)
+    own_conv1 = nn.Conv2d(
+        in_channels=in_channels,
+        out_channels=pretrained_conv1.out_channels,
+        kernel_size=pretrained_conv1.kernel_size,
+        stride=pretrained_conv1.stride,
+        padding=pretrained_conv1.padding,
+        bias=pretrained_conv1.bias,
+    )
     # Create a new convolution where part of the weights are pretrained
     new_weights = own_conv1.weight.clone()
-    new_weights[:, :pretrained_conv1.in_channels, :, :] = \
-        pretrained_conv1.weight[:, :pretrained_conv1.in_channels, :, :]
+    new_weights[:, : pretrained_conv1.in_channels, :, :] = pretrained_conv1.weight[
+        :, : pretrained_conv1.in_channels, :, :
+    ]
     own_conv1.weight = nn.Parameter(new_weights)
 
     # Implant new convolution with partially pretrained weights into model

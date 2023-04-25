@@ -2,29 +2,23 @@ import os
 
 import numpy as np
 
-import vispy
-from torchvision.transforms import transforms
-from vispy.scene import SceneCanvas
-from vispy import app
-
-from datasets import hypersim_dataset
-from datasets.nyu_dataset import NyuDataset
-from models.model_factory import ModelFactory
-from utils.config import args_and_config
-from matplotlib import cm
 import matplotlib.pyplot as plt
+import vispy
+from matplotlib import cm
+from vispy import app
+from vispy.scene import SceneCanvas
 
-from utils.transforms import compute_transforms
+from source.datasets import hypersim_dataset
+from source.models import ModelFactory
+from source.utils.configs import Config
 
 
-class Vis():
+class Vis:
     def __init__(self, dataset):
         self.index = 0
         self.dataset = dataset
 
-        self.canvas = SceneCanvas(keys='interactive',
-                                  show=True,
-                                  size=(1280, 1280))
+        self.canvas = SceneCanvas(keys="interactive", show=True, size=(1280, 1280))
         self.canvas.events.key_press.connect(self._key_press)
         self.canvas.events.draw.connect(self._draw)
         self.canvas.show()
@@ -43,17 +37,25 @@ class Vis():
         img_depths = (depths - np.min(depths)) / np.max(depths)
         img_depths = cm.viridis(img_depths)[:, :, :3]
         norm = plt.Normalize(vmin=0, vmax=1)
-        sm = cm.ScalarMappable(cmap='viridis', norm=norm)
+        sm = cm.ScalarMappable(cmap="viridis", norm=norm)
         sm.set_array([])
 
         grid = (2, 3)  # nrows, ncols
         fig, axes = plt.subplots(nrows=grid[0], ncols=grid[1], figsize=(25, 12))
         for row in range(grid[0]):
             for col in range(grid[1]):
-                axes[row, col].axis('off')
+                axes[row, col].axis("off")
         axes[0, 0].imshow(image)
         axes[0, 1].imshow(img_depths)
-        cb = fig.colorbar(sm, ax=axes[0, 2], fraction=0.9, pad=0.04, shrink=.9, aspect=1.5, ticks=[0, 1])
+        cb = fig.colorbar(
+            sm,
+            ax=axes[0, 2],
+            fraction=0.9,
+            pad=0.04,
+            shrink=0.9,
+            aspect=1.5,
+            ticks=[0, 1],
+        )
         cb.ax.tick_params(labelsize=25)
 
         plt.show()
@@ -71,17 +73,17 @@ class Vis():
         self.canvas.update()
 
     def _key_press(self, event):
-        if event.key == 'Right':
+        if event.key == "Right":
             if self.index < len(self.dataset) - 1:
                 self.index += 1
             self.update_image()
 
-        if event.key == 'Left':
+        if event.key == "Left":
             if self.index > 0:
                 self.index -= 1
             self.update_image()
 
-        if event.key == 'Q':
+        if event.key == "Q":
             self.destroy()
 
     def destroy(self):
@@ -98,21 +100,29 @@ class Vis():
 
 
 def main():
-    config = args_and_config()
+    config = Config()
 
     config["device"] = "cpu"
-    dataset_root_dir = config["data_location"]
-    data_flags = config["data_flags"]
 
-    pretrained_weights_path = os.path.join(config["root_dir"], "models", "pretrained_weights")
-    model, transform_config = ModelFactory().get_model(config["model"], pretrained_weights_path, config,
-                                                       in_channels=3)
+    model, transform_config = ModelFactory().get_model(config, in_channels=3)
     model.to(config["device"])
-    image_transform, depth_transform, seg_transform = compute_transforms(transform_config, config)
+    (
+        image_transform,
+        depth_transform,
+        seg_transform,
+    ) = hypersim_dataset.compute_transforms(transform_config, config)
 
-    dataset = hypersim_dataset.HyperSimDataset(root_dir=dataset_root_dir, file_path=config["val"]["data"],
-                                               image_transform=image_transform, depth_transform=depth_transform,
-                                               seg_transform=seg_transform, data_flags=config["data_flags"])
+    data_dir = config.get_subpath("data_location")
+    val_file_path = config.get_subpath("val_data")
+
+    dataset = hypersim_dataset.HyperSimDataset(
+        data_dir=data_dir,
+        file_path=val_file_path,
+        image_transform=image_transform,
+        depth_transform=depth_transform,
+        seg_transform=seg_transform,
+        data_flags=config["data_flags"],
+    )
 
     vis = Vis(dataset)
     vis.run()

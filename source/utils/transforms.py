@@ -1,15 +1,15 @@
-import cv2
 import numpy as np
-import torch
 import torchvision.transforms.functional as TF
 
 # compose several transformations
 from torchvision.transforms import transforms
 
+import cv2
 
-class Compose(object):
-    def __init__(self, transforms, p=1.0):
-        self.transforms = transforms
+
+class Compose:
+    def __init__(self, transforms_, p=1.0):
+        self.transforms = transforms_
         self.p = p
 
     def __call__(self, image, label):
@@ -20,9 +20,9 @@ class Compose(object):
 
 
 # select one of the transforms and apply
-class OneOf(object):
-    def __init__(self, transforms, p=1.0):
-        self.transforms = transforms
+class OneOf:
+    def __init__(self, transforms_, p=1.0):
+        self.transforms = transforms_
         self.p = p
 
     def __call__(self, image, label):
@@ -34,8 +34,8 @@ class OneOf(object):
 
 
 # apply random rotation with angle within limit_angle and with probability p
-class Random_Rotation(object):
-    def __init__(self, limit_angle=20.):
+class Random_Rotation:
+    def __init__(self, limit_angle=20.0):
         self.limit_angle = limit_angle
 
     def __call__(self, image, label):
@@ -47,7 +47,7 @@ class Random_Rotation(object):
 
 
 # apply affine transformation within provided limits
-class Affine(object):
+class Affine:
     def __init__(self, limit_angle, limit_translation, limit_shear, limit_scale):
         self.limit_angle = limit_angle
         self.limit_translation = limit_translation
@@ -76,16 +76,11 @@ def compute_transforms(transform_config, config):
     def resize(input_):
         return cv2.resize(input_, new_size, interpolation=cv2.INTER_NEAREST)
 
-    base_transform = (
-        transforms.ToTensor(),
-    )
+    base_transform = (transforms.ToTensor(),)
 
     def image_transform(input_):
         x = resize(input_)
-        tf = transforms.Compose([
-            *base_transform,
-            transforms.Normalize(mean, std)
-        ])
+        tf = transforms.Compose([*base_transform, transforms.Normalize(mean, std)])
         return tf(x)
 
     def depth_transform(input_):

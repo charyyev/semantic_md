@@ -1,12 +1,20 @@
 import os
 import pickle
-import torch
-import timm
 import urllib
 
-from utils.config import args_and_config
+import torch
 
-_MODEL_NAMES = ["resnet34", "resnet50", "efficientnet_b2", "efficientnet_b3", "efficientnet_b4"]
+import timm
+
+from source.utils.config import Config
+
+_MODEL_NAMES = [
+    "resnet34",
+    "resnet50",
+    "efficientnet_b2",
+    "efficientnet_b3",
+    "efficientnet_b4",
+]
 
 
 def test(pretrained_weights_path):
@@ -17,7 +25,9 @@ def test(pretrained_weights_path):
         weights_dict = torch.load(weights_path)
         model.load_state_dict(weights_dict)
 
-        weights_object_pickle_path = os.path.join(pretrained_weights_path, name, "weights_object.pickle")
+        weights_object_pickle_path = os.path.join(
+            pretrained_weights_path, name, "weights_object.pickle"
+        )
         with open(weights_object_pickle_path, "rb") as file:
             pickled = pickle.load(file)
             print(pickled)
@@ -33,7 +43,7 @@ def download(pretrained_weights_path, download_from_link):
     :return:
     """
     if not os.path.isdir(pretrained_weights_path):
-        raise FileExistsError(f'{pretrained_weights_path} does not exist.')
+        raise FileExistsError(f"{pretrained_weights_path} does not exist.")
 
     for name in _MODEL_NAMES:
         current_dir = os.path.join(pretrained_weights_path, name)
@@ -53,13 +63,12 @@ def download(pretrained_weights_path, download_from_link):
             pickle.dump(metadata, file)
 
 
-
 def main(download_from_link=False):
-    config = args_and_config()
-    pretrained_weights_path = os.path.join(config["root_dir"], "models", "pretrained_weights")
+    config = Config()
+    pretrained_weights_path = config.get_config("pretrained_weights_path")
     download(pretrained_weights_path, download_from_link)
     test(pretrained_weights_path)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main(download_from_link=False)

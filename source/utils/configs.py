@@ -1,8 +1,8 @@
 import datetime
 import os
+from copy import deepcopy
 
 import yaml
-from copy import deepcopy
 
 
 class Config:
@@ -57,7 +57,10 @@ class Config:
         return name_stem
 
     def __getitem__(self, item):
-        return self._config[item]
+        return self._config.__getitem__(item)
+
+    def __setitem__(self, key, value):
+        return self._config.__setitem__(key, value)
 
     def get_config(self):
         return self._config

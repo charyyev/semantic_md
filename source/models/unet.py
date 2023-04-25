@@ -1,13 +1,17 @@
-import torch 
-import torch.nn as nn
+import torch
+from torch import nn
 
 
 class DownBlock(nn.Module):
-    def __init__(self, in_c, out_c, kernel_size = 3, padding = 'same', stride = 1):
+    def __init__(self, in_c, out_c, kernel_size=3, padding="same", stride=1):
         super().__init__()
         self.batch_norm = nn.BatchNorm2d(in_c)
-        self.conv1 = nn.Conv2d(in_c, out_c, kernel_size = kernel_size, stride = stride, padding = padding)
-        self.conv2 = nn.Conv2d(out_c, out_c, kernel_size = kernel_size, stride = stride, padding = padding)
+        self.conv1 = nn.Conv2d(
+            in_c, out_c, kernel_size=kernel_size, stride=stride, padding=padding
+        )
+        self.conv2 = nn.Conv2d(
+            out_c, out_c, kernel_size=kernel_size, stride=stride, padding=padding
+        )
         self.max_pool = nn.MaxPool2d(kernel_size=2)
         self.relu = nn.ReLU()
 
@@ -18,18 +22,26 @@ class DownBlock(nn.Module):
         c = self.conv2(c)
         c = self.relu(c)
         p = self.max_pool(c)
-        
+
         return c, p
-    
+
+
 class UpBlock(nn.Module):
-    def __init__(self, in_c, skip_c, out_c, kernel_size = 3, padding = 'same', stride = 1):
+    def __init__(self, in_c, skip_c, out_c, kernel_size=3, padding="same", stride=1):
         super().__init__()
         self.batch_norm = nn.BatchNorm2d(in_c)
         self.up_sample = nn.Upsample(scale_factor=2)
-        self.conv1 = nn.Conv2d(in_c + skip_c, out_c, kernel_size = kernel_size, stride = stride, padding = padding)
-        self.conv2 = nn.Conv2d(out_c, out_c, kernel_size = kernel_size, stride = stride, padding = padding)
+        self.conv1 = nn.Conv2d(
+            in_c + skip_c,
+            out_c,
+            kernel_size=kernel_size,
+            stride=stride,
+            padding=padding,
+        )
+        self.conv2 = nn.Conv2d(
+            out_c, out_c, kernel_size=kernel_size, stride=stride, padding=padding
+        )
         self.relu = nn.ReLU()
-        
 
     def forward(self, x, skip):
         c = self.batch_norm(x)
@@ -41,14 +53,18 @@ class UpBlock(nn.Module):
         c = self.relu(c)
 
         return c
-    
+
 
 class BottleNeck(nn.Module):
-    def __init__(self, in_c, out_c, kernel_size = 3, padding = 'same', stride = 1):
+    def __init__(self, in_c, out_c, kernel_size=3, padding="same", stride=1):
         super().__init__()
         self.batch_norm = nn.BatchNorm2d(in_c)
-        self.conv1 = nn.Conv2d(in_c, out_c, kernel_size = kernel_size, stride = stride, padding = padding)
-        self.conv2 = nn.Conv2d(out_c, out_c, kernel_size = kernel_size, stride = stride, padding = padding)
+        self.conv1 = nn.Conv2d(
+            in_c, out_c, kernel_size=kernel_size, stride=stride, padding=padding
+        )
+        self.conv2 = nn.Conv2d(
+            out_c, out_c, kernel_size=kernel_size, stride=stride, padding=padding
+        )
         self.relu = nn.ReLU()
 
     def forward(self, x):
@@ -59,6 +75,7 @@ class BottleNeck(nn.Module):
         c = self.relu(c)
 
         return c
+
 
 class Unet(nn.Module):
     def __init__(self, in_c):
@@ -98,11 +115,14 @@ class Unet(nn.Module):
         output = torch.sigmoid(self.head(u5))
 
         return output
-    
+
+
+def main():
+    x = torch.rand((1, 4, 768, 576))
+    model = Unet(in_c=4)
+    pred = model(x)
+    print(pred)
 
 
 if __name__ == "__main__":
-    x = torch.rand((1, 4, 768, 576))
-    model = Unet(in_c = 4)
-    pred = model(x)
-    
+    main()
