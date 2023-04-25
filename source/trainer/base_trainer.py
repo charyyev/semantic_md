@@ -3,6 +3,7 @@ File is used for training the actual model.
 """
 import json
 import os
+from abc import abstractmethod
 from collections import defaultdict
 
 import numpy as np
@@ -10,8 +11,8 @@ import torch
 from torch.utils.data import DataLoader
 from torch.utils.tensorboard import SummaryWriter
 
-from tqdm import tqdm
 import wandb
+from tqdm import tqdm
 
 from source.datasets import hypersim_dataset
 from source.models import ModelFactory
@@ -41,10 +42,11 @@ class BaseTrainer:
 
     def prepare_loaders(self):
         self.logger.info("Preparing dataloaders")
-        image_transform, depth_transform, seg_transform = hypersim_dataset. \
-            compute_transforms(
-            self.transform_config, self.config
-        )
+        (
+            image_transform,
+            depth_transform,
+            seg_transform,
+        ) = hypersim_dataset.compute_transforms(self.transform_config, self.config)
 
         data_dir = self.config.get_subpath("data_location")
         train_file_path = self.config.get_subpath("train_data")
@@ -56,7 +58,7 @@ class BaseTrainer:
             image_transform=image_transform,
             depth_transform=depth_transform,
             seg_transform=seg_transform,
-            data_flags=self.config["data_flags"]
+            data_flags=self.config["data_flags"],
         )
         self.train_loader = DataLoader(
             train_dataset,
@@ -70,7 +72,7 @@ class BaseTrainer:
             image_transform=image_transform,
             depth_transform=depth_transform,
             seg_transform=seg_transform,
-            data_flags=self.config["data_flags"]
+            data_flags=self.config["data_flags"],
         )
         self.val_loader = DataLoader(
             val_dataset,
@@ -89,15 +91,16 @@ class BaseTrainer:
         )
         self.model.to(self.config["device"])
 
-        self.loss = torch.nn.L1Loss(reduction='none')
+        self.loss = torch.nn.L1Loss(reduction="none")
         # self.loss = torch.nn.SmoothL1Loss(reduction='none')
         # self.loss = BerHuLoss(contains_nan=True)
         self.nan_reduction = torch.nanmean
-        self.optimizer = torch.optim.Adam(self.model.parameters(), lr=learning_rate,
-                                          weight_decay=weight_decay)
-        self.scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(self.optimizer,
-                                                                    T_max=epochs,
-                                                                    eta_min=0)
+        self.optimizer = torch.optim.Adam(
+            self.model.parameters(), lr=learning_rate, weight_decay=weight_decay
+        )
+        self.scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(
+            self.optimizer, T_max=epochs, eta_min=0
+        )
 
     def step(self, data):
         image = data["image"].to(self.config["device"])
@@ -180,7 +183,7 @@ class BaseTrainer:
             else:
                 self._log(epoch, **train_metrics)
 
-        _close()
+        self._close()
 
     def validate(self, epoch):
         self.logger.info(f"Validating: Epoch {epoch}")
@@ -259,9 +262,9 @@ class BaseTrainer:
             wandb.finish(exit_code=0, quiet=False)
         exit(0)
 
-
-def flag_sanity_check(flags):
-    """
-    Checks the flags for compatibility
-    """
-    id(flags)
+    @abstractmethod
+    def flag_sanity_check(self, flags):
+        """
+        Checks the flags for compatibility
+        """
+        pass

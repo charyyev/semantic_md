@@ -1,15 +1,24 @@
 import os
 import pickle
 
-import segmentation_models_pytorch as smp
 import torch
 
-from source.models.unet import Unet
-from source.models.specialized_networks import semantic_convolution, onehot, concat, border, model_utils, simplified_onehot
+import segmentation_models_pytorch as smp
 
+from source.models.multi_loss_model import MultiLossModel
+from source.models.specialized_networks import (
+    border,
+    concat,
+    model_utils,
+    onehot,
+    semantic_convolution,
+    simplified_onehot,
+)
+from source.models.unet import Unet
 
 # https://smp.readthedocs.io/en/latest/models.html#unet
 # https://smp.readthedocs.io/en/latest/encoders.html
+
 
 class ModelFactory:
     def __init__(self):
@@ -23,20 +32,55 @@ class ModelFactory:
         self.basic_models = dict(
             # unet=(Unet, {}, "unet"),
             uresnet34=(
-                smp.Unet, {"encoder_name": "tu-resnet34", "encoder_weights": None, "activation": "sigmoid"},
-                "resnet34", "timm_smp_res"),
+                smp.Unet,
+                {
+                    "encoder_name": "tu-resnet34",
+                    "encoder_weights": None,
+                    "activation": "sigmoid",
+                },
+                "resnet34",
+                "timm_smp_res",
+            ),
             uresnet50=(
-                smp.Unet, {"encoder_name": "tu-resnet50", "encoder_weights": None, "activation": "sigmoid"},
-                "resnet50", "timm_smp_res"),
+                smp.Unet,
+                {
+                    "encoder_name": "tu-resnet50",
+                    "encoder_weights": None,
+                    "activation": "sigmoid",
+                },
+                "resnet50",
+                "timm_smp_res",
+            ),
             uefficientnet_b2=(
-                smp.Unet, {"encoder_name": "tu-efficientnet_b2", "encoder_weights": None, "activation": "sigmoid"},
-                "efficientnet_b2", "timm_smp_eff"),
+                smp.Unet,
+                {
+                    "encoder_name": "tu-efficientnet_b2",
+                    "encoder_weights": None,
+                    "activation": "sigmoid",
+                },
+                "efficientnet_b2",
+                "timm_smp_eff",
+            ),
             uefficientnet_b3=(
-                smp.Unet, {"encoder_name": "tu-efficientnet_b3", "encoder_weights": None, "activation": "sigmoid"},
-                "efficientnet_b3", "timm_smp_eff"),
+                smp.Unet,
+                {
+                    "encoder_name": "tu-efficientnet_b3",
+                    "encoder_weights": None,
+                    "activation": "sigmoid",
+                },
+                "efficientnet_b3",
+                "timm_smp_eff",
+            ),
             uefficientnet_b4=(
-                smp.Unet, {"encoder_name": "tu-efficientnet_b4", "encoder_weights": None, "activation": "sigmoid"},
-                "efficientnet_b4", "timm_smp_eff")
+                smp.Unet,
+                {
+                    "encoder_name": "tu-efficientnet_b4",
+                    "encoder_weights": None,
+                    "activation": "sigmoid",
+                },
+                "efficientnet_b4",
+                "timm_smp_eff",
+            ),
         )
 
     def get_model(self, config, in_channels: int = 3):
@@ -51,6 +95,10 @@ class ModelFactory:
             model = Unet(in_c=in_channels)
             transforms = {"mean": (0, 0, 0), "std": (1, 1, 1)}
             type_desc = "unet"
+        elif model_type == "multi_loss":
+            model = MultiLossModel(self.config)
+            transforms = model.load_and_transforms()
+            return model, transforms
         elif model_type in list(self.basic_models.keys()):
             model_func, kwargs, name, type_desc = self.basic_models[model_type]
 
@@ -61,7 +109,9 @@ class ModelFactory:
             else:
                 model = model_func(**kwargs, in_channels=in_channels, classes=1)
 
-            metadata_path = os.path.join(pretrained_weights_path, name, "weights_object.pickle")
+            metadata_path = os.path.join(
+                pretrained_weights_path, name, "weights_object.pickle"
+            )
             with open(metadata_path, "rb") as file:
                 transforms = pickle.load(file)
             weights_path = os.path.join(pretrained_weights_path, name, "weights.pth")
@@ -75,16 +125,22 @@ class ModelFactory:
             if type_desc in ["timm_smp_res", "timm_smp_eff"] and in_channels > 3:
                 get_func, set_func = model_utils.get_set_conv1_functions(type_desc)
                 add_out_channels = in_channels - 3
-                model = model_utils.extend_first_convolution(model, add_out_channels, get_func, set_func)
+                model = model_utils.extend_first_convolution(
+                    model, add_out_channels, get_func, set_func
+                )
         else:
             raise ValueError(f"Unknown model_type {model_type}")
 
         get_func, set_func = model_utils.get_set_conv1_functions(type_desc)
         data_flags = config["data_flags"]
         if data_flags["type"] == "semantic_convolution":
-            model = semantic_convolution.SemanticConvolutionModel(model, in_channels, get_func, set_func)
+            model = semantic_convolution.SemanticConvolutionModel(
+                model, in_channels, get_func, set_func
+            )
         elif data_flags["type"] == "onehot":
-            model = onehot.OneHotModel(model, data_flags["seg_classes"], get_func, set_func)
+            model = onehot.OneHotModel(
+                model, data_flags["seg_classes"], get_func, set_func
+            )
         elif data_flags["type"] == "concat":
             model = concat.ConcatModel(model, get_func, set_func)
         elif data_flags["type"] == "border":

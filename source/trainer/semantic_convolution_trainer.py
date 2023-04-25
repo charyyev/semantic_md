@@ -21,3 +21,6 @@ class SemanticConvolutionTrainer(BaseTrainer):
         full_metrics = {"loss": loss.item(), **metrics}
 
         return loss, full_metrics
+
+    def flag_sanity_check(self, flags):
+        id(flags)
