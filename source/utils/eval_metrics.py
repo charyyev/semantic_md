@@ -8,7 +8,8 @@ def unnormalize(inp, min_depth, max_depth):
 def depth_metrics(pred, target, epsilon, config):
     pred = torch.clamp(pred, min=epsilon, max=None)
     assert pred.shape == target.shape
-    min_depth, max_depth = config["transformations"]["depth_range"]
+    depth = config["transformations"]["depth_range"]
+    min_depth, max_depth = depth["min"], depth["max"]
     target = unnormalize(target, min_depth, max_depth)
     pred = unnormalize(pred, min_depth, max_depth)
 
