@@ -14,8 +14,10 @@
         "concat": false,
         "onehot": false,
         "border": false,
-        "semantic_convolution": true,
-        "simplified_onehot": false
+        "semantic_convolution": false,
+        "simplified_onehot": false,
+        "simplified_onehot_channels": 0,
+        "multi-loss": false
     },
     "train": 
     {

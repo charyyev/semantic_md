@@ -1,3 +1,5 @@
+import os
+
 import numpy as np
 
 import vispy
@@ -7,9 +9,12 @@ from vispy import app
 
 from datasets import hypersim_dataset
 from datasets.nyu_dataset import NyuDataset
+from models.model_factory import ModelFactory
 from utils.config import args_and_config
 from matplotlib import cm
 import matplotlib.pyplot as plt
+
+from utils.transforms import compute_transforms
 
 
 class Vis():
@@ -95,14 +100,19 @@ class Vis():
 def main():
     config = args_and_config()
 
-    dataset_dir = config["data_location"]
-    data_flags = None
-    transform = transforms.ToTensor()
+    config["device"] = "cpu"
+    dataset_root_dir = config["data_location"]
+    data_flags = config["data_flags"]
 
-    dataset = hypersim_dataset.HyperSimDataset(root_dir=dataset_dir, train=False,
-                                               image_transform=transform,
-                                               depth_transform=transform, seg_transform=transform,
-                                               data_flags=config["data_flags"])
+    pretrained_weights_path = os.path.join(config["root_dir"], "models", "pretrained_weights")
+    model, transform_config = ModelFactory().get_model(config["model"], pretrained_weights_path, config,
+                                                       in_channels=3)
+    model.to(config["device"])
+    image_transform, depth_transform, seg_transform = compute_transforms(transform_config, config)
+
+    dataset = hypersim_dataset.HyperSimDataset(root_dir=dataset_root_dir, file_path=config["val"]["data"],
+                                               image_transform=image_transform, depth_transform=depth_transform,
+                                               seg_transform=seg_transform, data_flags=config["data_flags"])
 
     vis = Vis(dataset)
     vis.run()

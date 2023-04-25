@@ -10,8 +10,9 @@ def args_and_config():
     # get base.json arguments
     current_path = os.path.abspath(__file__)
     project_root_dir = os.path.dirname(os.path.dirname(current_path))
-    # config_path = os.path.join(project_root_dir, 'configs', 'oliver_local_mac.json')
-    config_path = os.path.join(project_root_dir, 'configs', 'euler.json')
+    # config_path = os.path.join(project_root_dir, 'configs', 'base.json')
+    config_path = os.path.join(project_root_dir, 'configs', 'oliver_local_ubuntu.json')
+    # config_path = os.path.join(project_root_dir, 'configs', 'euler.json')
     parser.add_argument('--config', type=str, nargs='?', default=config_path)
     # Parse the argument
     args = parser.parse_args()
