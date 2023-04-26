@@ -1,22 +1,21 @@
 import os
 import sys
-sys.path.insert(0, '/media/ankitaghosh/Data/ETH/3DVision/semantic_md')
 
-import matplotlib.pyplot as plt
 import numpy as np
 import torch
-import vispy
+
 import matplotlib as mlp
+import matplotlib.pyplot as plt
 from matplotlib import cm
-from vispy import app, scene, color
 
-from datasets import hypersim_dataset
-from models.model_factory import ModelFactory
-from utils.config import args_and_config
-from utils.transforms import compute_transforms
+from source.datasets import hypersim_dataset
+from source.models import ModelFactory
+from source.utils.configs import Config
+
+# sys.path.insert(0, "/media/ankitaghosh/Data/ETH/3DVision/semantic_md")
 
 
-class Vis():
+class Vis:
     def __init__(self, dataset, model, config):
         self.index = 0
         self.dataset = dataset
@@ -30,7 +29,7 @@ class Vis():
         for row in range(nrows):
             for col in range(ncols):
                 self.axes[row][col].axis("off")
-        self.fig.canvas.mpl_connect('key_press_event', self.on_key_press)
+        self.fig.canvas.mpl_connect("key_press_event", self.on_key_press)
 
         # # colorbar
         # min_depth, max_depth = self.config["transformations"]["depth_range"]
@@ -61,34 +60,36 @@ class Vis():
         self.axes[0, 1].set_title("depth map")
         self.axes[0, 1].imshow(depths, cmap="viridis")
 
-        #segmentation
+        # segmentation
         segs = data["original_seg"].squeeze().numpy()
-        #img_segs = (np.clip(segs, 0, config["data_flags"]["seg_classes"]) / config["data_flags"]["seg_classes"] * 255).astype(int)
-        img_segs = (np.clip(segs, 0, config["data_flags"]["seg_classes"])).astype(int)
+        # img_segs = (np.clip(segs, 0, config["data_flags"]["seg_classes"]) /
+        # config["data_flags"]["seg_classes"] * 255).astype(int)
+        img_segs = (
+            np.clip(segs, 0, self.config["data_flags"]["parameters"]["seg_classes"])
+        ).astype(int)
         img_segs_vir = cm.tab20b(img_segs)
         self.axes[0, 2].set_title("semantic map")
         self.axes[0, 2].imshow(img_segs_vir)
 
-        #seg post-processing
+        # seg post-processing
         segs_post = data["segs"].squeeze().numpy()
-        if config["data_flags"]["border"]:
+        if self.config["data_flags"]["type"] == "border":
             img_segs_post = cm.tab20b(segs_post)[:, :, :3]
             self.axes[0, 3].set_title("border")
             self.axes[0, 3].imshow(img_segs_post)
-        elif config["data_flags"]["simplified_onehot"]:
-            segs_post = (np.argmax(segs_post, axis=0).astype(int)/3 * 255).astype(int)
+        elif self.config["data_flags"]["type"] == "simplified_onehot":
+            segs_post = (np.argmax(segs_post, axis=0).astype(int) / 3 * 255).astype(int)
             img_segs_post = cm.viridis(segs_post)
             self.axes[0, 3].set_title("3-encoded")
             self.axes[0, 3].imshow(img_segs_post)
 
-
         # Prediction
         input_ = data["image"].unsqueeze(0)
-        if self.config["data_flags"]["semantic_convolution"]:
+        if self.config["data_flags"]["type"] == "semantic_convolution":
             input_sem = data["segs"].unsqueeze(0)
-            pred = model(input_, input_sem)
+            pred = self.model(input_, input_sem)
         else:
-            pred = model(input_)
+            pred = self.model(input_)
         pred = pred.detach().numpy().squeeze()
         self.axes[1, 0].set_title("prediction")
         self.axes[1, 0].imshow(pred, cmap="viridis")
@@ -106,53 +107,68 @@ class Vis():
         os.makedirs(base_path, exist_ok=True)
         file_name = os.path.join(base_path, f"Image_{self.index}")
         plt.savefig(file_name)
-        self.axes[0, 0].text(0, -60, "Saved", bbox=dict(facecolor='grey', alpha=0.5), fontsize=20)
+        self.axes[0, 0].text(
+            0, -60, "Saved", bbox={"facecolor": "grey", "alpha": 0.5}, fontsize=20
+        )
         plt.draw()
 
     def on_key_press(self, event):
-        if event.key == 'right' or event.key == 'd':
+        print(event.key)
+        if event.key in {"right", "d"}:
             if self.index < len(self.dataset) - 1:
                 self.index += 1
             self.update_image()
-        elif event.key == 'left' or event.key == 'a':
+        elif event.key in {"left", "a"}:
             if self.index > 0:
                 self.index -= 1
             self.update_image()
-        elif event.key == 'q':
+        elif event.key == "q":
             self.destroy()
-        elif event.key == ' ':  # space bar
+        elif event.key == " ":  # space bar
             self._save_image()
         else:
             UserWarning(f"Key is not mapped to function: {event.key}")
 
     def destroy(self):
         plt.close(self.fig)
-        exit(0)
+        sys.exit(0)
 
 
-if __name__ == "__main__":
+def main():
     mlp.use("TkAgg")
-    config = args_and_config()
+    config = Config()
 
     config["device"] = "cpu"
-    dataset_root_dir = config["data_location"]
-    data_flags = config["data_flags"]
 
-    pretrained_weights_path = os.path.join(config["root_dir"], "models", "pretrained_weights")
-    model, transform_config = ModelFactory().get_model(config["model"], pretrained_weights_path, config,
-                                                       in_channels=3)
+    model, transform_config = ModelFactory().get_model(config, in_channels=3)
     model.to(config["device"])
-    image_transform, depth_transform, seg_transform = compute_transforms(transform_config, config)
+    (
+        image_transform,
+        depth_transform,
+        seg_transform,
+    ) = hypersim_dataset.compute_transforms(transform_config, config)
 
-    dataset = hypersim_dataset.HyperSimDataset(root_dir=dataset_root_dir, file_path=config["val"]["data"],
-                                               image_transform=image_transform, depth_transform=depth_transform,
-                                               seg_transform=seg_transform, data_flags=config["data_flags"])
+    data_dir = config.get_subpath("data_location")
+    val_file_path = config.get_subpath("val_data")
 
-    model_path = config["visualize"].get("model_path", None)
+    dataset = hypersim_dataset.HyperSimDataset(
+        data_dir=data_dir,
+        file_path=val_file_path,
+        image_transform=image_transform,
+        depth_transform=depth_transform,
+        seg_transform=seg_transform,
+        data_flags=config["data_flags"],
+    )
+
+    model_path = config["visualize"]["model_path"]
     if not (model_path is None or model_path.strip() == ""):
         checkpoint = torch.load(model_path, map_location=torch.device(config["device"]))
         model.load_state_dict(checkpoint)
     model.eval()
 
-    vis = Vis(dataset, model, config)
+    Vis(dataset, model, config)
     plt.show()
+
+
+if __name__ == "__main__":
+    main()

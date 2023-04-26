@@ -112,7 +112,10 @@ disable=["attribute-defined-outside-init",
     "fixme",
     "cyclic-import",
     "import-error",
-    "no-member"]
+    "no-member",
+    "no-else-return",
+    "pointless-exception-statement",
+    "pointless-string-statement"]
 
 
 [tool.pylint.REPORTS]

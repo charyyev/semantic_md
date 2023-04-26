@@ -11,3 +11,6 @@ opencv-python
 matplotlib
 segmentation_models_pytorch
 wandb
+vispy
+h5py
+timm
