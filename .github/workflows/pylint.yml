@@ -1,2 +1,2 @@
-- name: Lint with PyLint
-  uses: fylein/python-pylint-github-action@v4
+name: Lint with PyLint
+uses: fylein/python-pylint-github-action@v4
