@@ -14,6 +14,7 @@ class MultiLossTrainer(BaseTrainer):
         image = data["image"].to(self.config["device"])
         depth = data["depths"].to(self.config["device"])
         semantic = data["segs"].to(self.config["device"])
+        semantic = semantic.squeeze()
 
         self.optimizer.zero_grad()
 

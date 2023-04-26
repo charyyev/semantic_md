@@ -2,6 +2,9 @@ import os
 import pickle
 
 import torch
+from segmentation_models_pytorch.base import SegmentationHead
+from segmentation_models_pytorch.decoders.unet.decoder import UnetDecoder
+from segmentation_models_pytorch.encoders import get_encoder
 from torch import nn
 
 import segmentation_models_pytorch as smp
@@ -12,27 +15,52 @@ class MultiLossModel(nn.Module):
         super().__init__()
         self.config = config
 
-        model_depth = smp.Unet(
-            encoder_name="tu-efficientnet_b4",
-            encoder_weights=None,
-            activation="sigmoid",
-        )
-        model_semantic = smp.Unet(
-            encoder_name="tu-efficientnet_b4",
-            encoder_weights=None,
-            activation=None,
-        )
-        self.encoder = model_depth.encoder.model
-        self.decoder_depth = model_depth.decoder
-        self.decoder_semantic = model_semantic.decoder
+        self.test = smp.Unet(encoder_name="tu-efficientnet_b4", encoder_depth=5, encoder_weights=None)
 
-        del model_depth
-        del model_semantic
+        self.encoder = get_encoder(
+            name="tu-efficientnet_b4",
+            in_channels=3,
+            depth=5,
+            weights=None,
+        )
+
+        self.decoder_depth = UnetDecoder(
+            encoder_channels=self.encoder.out_channels,
+            decoder_channels=(256, 128, 64, 32, 16),
+            n_blocks=5,
+            use_batchnorm=True,
+            center=False,
+            attention_type=None,
+        )
+
+        self.decoder_semantic = UnetDecoder(
+            encoder_channels=self.encoder.out_channels,
+            decoder_channels=(256, 128, 64, 32, 16),
+            n_blocks=5,
+            use_batchnorm=True,
+            center=False,
+            attention_type=None,
+        )
+
+        self.head_depth = SegmentationHead(
+            in_channels=16,
+            out_channels=1,
+            activation=None,
+            kernel_size=3,
+        )
+
+        self.head_semantic = SegmentationHead(
+            in_channels=16,
+            out_channels=self.config["data_flags"]["parameters"]["seg_classes"],
+            activation="sigmoid",
+            kernel_size=3,
+        )
 
     def forward(self, x):
+        #self.test(x)
         x = self.encoder(x)
-        pred_depth = self.decoder_depth(x)
-        pred_semantic = self.decoder_semantic(x)
+        pred_depth = self.decoder_depth(*x)
+        pred_semantic = self.decoder_semantic(*x)
         return pred_depth, pred_semantic
 
     def load_and_transforms(self):
@@ -52,7 +80,7 @@ class MultiLossModel(nn.Module):
             self.config["pretrained_names"]["weights"],
         )
         weights_dict = torch.load(weights_path)
-        # self.encoder.model.load_state_dict(weights_dict, strict=False)
-        self.encoder.load_state_dict(weights_dict, strict=False)
+        self.encoder.model.load_state_dict(weights_dict, strict=False)
+        # self.encoder.load_state_dict(weights_dict, strict=False)
 
         return transforms

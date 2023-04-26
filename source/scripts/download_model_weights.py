@@ -6,7 +6,7 @@ import torch
 
 import timm
 
-from source.utils.config import Config
+from source.utils.configs import Config
 
 _MODEL_NAMES = [
     "resnet34",
@@ -42,8 +42,7 @@ def download(pretrained_weights_path, download_from_link):
     via the torch library (might not work on server)
     :return:
     """
-    if not os.path.isdir(pretrained_weights_path):
-        raise FileExistsError(f"{pretrained_weights_path} does not exist.")
+    os.makedirs(pretrained_weights_path, exist_ok=True)
 
     for name in _MODEL_NAMES:
         current_dir = os.path.join(pretrained_weights_path, name)
@@ -65,7 +64,7 @@ def download(pretrained_weights_path, download_from_link):
 
 def main(download_from_link=False):
     config = Config()
-    pretrained_weights_path = config.get_config("pretrained_weights_path")
+    pretrained_weights_path = config.get_subpath("pretrained_weights_path")
     download(pretrained_weights_path, download_from_link)
     test(pretrained_weights_path)
 
