@@ -40,6 +40,8 @@ class BaseTrainer:
                 id=self.id,
             )
 
+        self.flag_sanity_check(self.config["data_flags"])
+
     def prepare_loaders(self):
         self.logger.info("Preparing dataloaders")
         (

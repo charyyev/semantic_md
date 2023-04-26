@@ -1,3 +1,4 @@
+import numpy as np
 from torch import nn
 
 from source.trainer.base_trainer import BaseTrainer
@@ -8,13 +9,13 @@ class MultiLossTrainer(BaseTrainer):
     def build_model(self):
         super().build_model()
         self.loss_depth = nn.L1Loss(reduction="none")
-        self.loss_semantic = nn.CrossEntropyLoss(reduction="none")
+        self.loss_semantic = nn.CrossEntropyLoss(reduction="none", ignore_index=-2)
 
     def step(self, data):
         image = data["image"].to(self.config["device"])
         depth = data["depths"].to(self.config["device"])
         semantic = data["segs"].to(self.config["device"])
-        semantic = semantic.squeeze()
+        semantic = semantic.squeeze().long() - 1
 
         self.optimizer.zero_grad()
 
@@ -40,4 +41,5 @@ class MultiLossTrainer(BaseTrainer):
         return loss, full_metrics
 
     def flag_sanity_check(self, flags):
-        assert flags["type"] is None
+        if flags["type"] is not None:
+            raise ValueError("Cannot set flag while running multi-loss")

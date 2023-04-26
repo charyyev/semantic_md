@@ -2,12 +2,12 @@ import os
 import pickle
 
 import torch
-from segmentation_models_pytorch.base import SegmentationHead
-from segmentation_models_pytorch.decoders.unet.decoder import UnetDecoder
-from segmentation_models_pytorch.encoders import get_encoder
 from torch import nn
 
 import segmentation_models_pytorch as smp
+from segmentation_models_pytorch.base import SegmentationHead
+from segmentation_models_pytorch.decoders.unet.decoder import UnetDecoder
+from segmentation_models_pytorch.encoders import get_encoder
 
 
 class MultiLossModel(nn.Module):
@@ -15,7 +15,9 @@ class MultiLossModel(nn.Module):
         super().__init__()
         self.config = config
 
-        self.test = smp.Unet(encoder_name="tu-efficientnet_b4", encoder_depth=5, encoder_weights=None)
+        self.test = smp.Unet(
+            encoder_name="tu-efficientnet_b4", encoder_depth=5, encoder_weights=None
+        )
 
         self.encoder = get_encoder(
             name="tu-efficientnet_b4",
@@ -57,10 +59,12 @@ class MultiLossModel(nn.Module):
         )
 
     def forward(self, x):
-        #self.test(x)
+        # self.test(x)
         x = self.encoder(x)
         pred_depth = self.decoder_depth(*x)
+        pred_depth = self.head_depth(pred_depth)
         pred_semantic = self.decoder_semantic(*x)
+        pred_semantic = self.head_semantic(pred_semantic)
         return pred_depth, pred_semantic
 
     def load_and_transforms(self):

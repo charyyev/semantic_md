@@ -2,7 +2,7 @@
 # See configs/template.yaml for an example how to create a deviating configuration file
 # By default the config/user.yaml configuration file is used.
 
-model_type: "uefficientnet_b4"
+model_type: "multi_loss"
 note: "overfit"
 device: "cuda"
 resume_training: false
@@ -32,7 +32,7 @@ hyperparameters:
         epochs: 20
         weight_decay: 0
         save_every: 1
-
+        lambda_loss: 1.
     val:
         batch_size: 8
         val_every: 1
