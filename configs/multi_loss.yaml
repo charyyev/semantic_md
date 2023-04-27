@@ -1,0 +1,13 @@
+# load the base configuration file
+extends: "euler.yaml"
+
+model_type: "multi_loss"
+data_flags:
+    # can be concat, onehot, border, semantic_convolution, simplified_onehote
+    type: null
+
+hyperparameters:
+    train:
+        batch_size: 6
+    val:
+        batch_size: 6
