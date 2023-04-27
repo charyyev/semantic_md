@@ -14,6 +14,8 @@ class Config:
     def __init__(self, file=None):
         if file is None:
             file = "user.yaml"
+        else:
+            file = f"{file}.yaml"
 
         def load_recursive(config, stack):
             if config in stack:
