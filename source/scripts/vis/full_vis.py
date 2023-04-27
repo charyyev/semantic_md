@@ -6,11 +6,10 @@ import torch
 
 import matplotlib as mlp
 import matplotlib.pyplot as plt
+from datasets import hypersim_dataset
 from matplotlib import cm
-
-from source.datasets import hypersim_dataset
-from source.models import ModelFactory
-from source.utils.configs import Config
+from models import ModelFactory
+from utils.configs import Config
 
 # sys.path.insert(0, "/media/ankitaghosh/Data/ETH/3DVision/semantic_md")
 

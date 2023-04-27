@@ -1,6 +1,6 @@
 import torch
 
-from source.utils.configs import Config
+from utils.configs import Config
 
 
 def unnormalize(inp, min_depth, max_depth):

@@ -5,8 +5,7 @@ import urllib
 import torch
 
 import timm
-
-from source.utils.configs import Config
+from utils.configs import Config
 
 _MODEL_NAMES = [
     "resnet34",

@@ -4,13 +4,12 @@ import numpy as np
 
 import matplotlib.pyplot as plt
 import vispy
+from datasets import hypersim_dataset
 from matplotlib import cm
+from models import ModelFactory
+from utils.configs import Config
 from vispy import app
 from vispy.scene import SceneCanvas
-
-from source.datasets import hypersim_dataset
-from source.models import ModelFactory
-from source.utils.configs import Config
 
 
 class Vis:

@@ -2,11 +2,10 @@ import numpy as np
 import torch
 
 import vispy
+from datasets.nyu_dataset import NyuDataset
+from models.unet import Unet
 from vispy import app
 from vispy.scene import SceneCanvas
-
-from source.datasets.nyu_dataset import NyuDataset
-from source.models.unet import Unet
 
 
 class Vis:

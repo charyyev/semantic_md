@@ -2,7 +2,7 @@ import torch
 import torchvision
 from torch import nn
 
-from source.models.specialized_networks import model_utils
+from models.specialized_networks import model_utils
 
 
 class SemanticConvolutionModel(nn.Module):

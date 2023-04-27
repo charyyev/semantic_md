@@ -12,12 +12,11 @@ from torch.utils.data import DataLoader
 from torch.utils.tensorboard import SummaryWriter
 
 import wandb
+from datasets import hypersim_dataset
+from models import ModelFactory
 from tqdm import tqdm
-
-from source.datasets import hypersim_dataset
-from source.models import ModelFactory
-from source.utils.eval_metrics import depth_metrics
-from source.utils.logs import ProjectLogger
+from utils.eval_metrics import depth_metrics
+from utils.logs import ProjectLogger
 
 
 class BaseTrainer:

@@ -4,9 +4,8 @@ import pickle
 import torch
 
 import segmentation_models_pytorch as smp
-
-from source.models.multi_loss_model import MultiLossModel
-from source.models.specialized_networks import (
+from models.multi_loss_model import MultiLossModel
+from models.specialized_networks import (
     border,
     concat,
     model_utils,
@@ -14,7 +13,7 @@ from source.models.specialized_networks import (
     semantic_convolution,
     simplified_onehot,
 )
-from source.models.unet import Unet
+from models.unet import Unet
 
 # https://smp.readthedocs.io/en/latest/models.html#unet
 # https://smp.readthedocs.io/en/latest/encoders.html

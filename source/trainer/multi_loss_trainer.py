@@ -1,8 +1,8 @@
 import numpy as np
 from torch import nn
 
-from source.trainer.base_trainer import BaseTrainer
-from source.utils.eval_metrics import depth_metrics
+from trainer.base_trainer import BaseTrainer
+from utils.eval_metrics import depth_metrics
 
 
 class MultiLossTrainer(BaseTrainer):

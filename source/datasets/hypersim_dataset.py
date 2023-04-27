@@ -7,8 +7,7 @@ from torch.utils.data import Dataset
 from torchvision.transforms import transforms
 
 import cv2
-
-from source.utils.conversions import (
+from utils.conversions import (
     semantic_norm,
     semantic_to_border,
     simplified_encode_3,

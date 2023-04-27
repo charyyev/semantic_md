@@ -1,9 +1,9 @@
 import argparse
 
-from source.trainer.base_trainer import BaseTrainer
-from source.trainer.multi_loss_trainer import MultiLossTrainer
-from source.trainer.semantic_convolution_trainer import SemanticConvolutionTrainer
-from source.utils.configs import Config
+from trainer.base_trainer import BaseTrainer
+from trainer.multi_loss_trainer import MultiLossTrainer
+from trainer.semantic_convolution_trainer import SemanticConvolutionTrainer
+from utils.configs import Config
 
 
 def main():

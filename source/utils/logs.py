@@ -1,7 +1,7 @@
 import logging
 import os.path
 
-from source.utils.configs import Config
+from utils.configs import Config
 
 
 class ProjectLogger(logging.Logger):
