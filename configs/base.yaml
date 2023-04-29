@@ -59,4 +59,5 @@ pretrained_names:
     pretrained_metadata: "weights_object.pickle"
 
 visualize:
+    model_type: "triple_loss"
     model_path: ""
