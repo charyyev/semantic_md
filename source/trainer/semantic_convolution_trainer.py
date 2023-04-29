@@ -4,9 +4,9 @@ from utils.eval_metrics import depth_metrics
 
 class SemanticConvolutionTrainer(BaseTrainer):
     def step(self, data):
-        image = data["image"].to(self.config["device"])
+        image = data["input_image"].to(self.config["device"])
         target = data["depths"].to(self.config["device"])
-        semantic = data["segs"].to(self.config["device"])
+        semantic = data["input_segs"].to(self.config["device"])
 
         self.optimizer.zero_grad()
 

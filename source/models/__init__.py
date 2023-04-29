@@ -13,6 +13,7 @@ from models.specialized_networks import (
     semantic_convolution,
     simplified_onehot,
 )
+from models.triple_loss_model import TripleLossModel
 from models.unet import Unet
 
 # https://smp.readthedocs.io/en/latest/models.html#unet
@@ -28,9 +29,9 @@ class ModelFactory:
         (3) A name under which to find pretrained weights
         (4) A model type description which specifies which the type of model. Used when extending the #channels
         """
-        self.basic_models = dict(
+        self.basic_models = {
             # unet=(Unet, {}, "unet"),
-            uresnet34=(
+            "uresnet34": (
                 smp.Unet,
                 {
                     "encoder_name": "tu-resnet34",
@@ -40,7 +41,7 @@ class ModelFactory:
                 "resnet34",
                 "timm_smp_res",
             ),
-            uresnet50=(
+            "uresnet50": (
                 smp.Unet,
                 {
                     "encoder_name": "tu-resnet50",
@@ -50,7 +51,7 @@ class ModelFactory:
                 "resnet50",
                 "timm_smp_res",
             ),
-            uefficientnet_b2=(
+            "uefficientnet_b2": (
                 smp.Unet,
                 {
                     "encoder_name": "tu-efficientnet_b2",
@@ -60,7 +61,7 @@ class ModelFactory:
                 "efficientnet_b2",
                 "timm_smp_eff",
             ),
-            uefficientnet_b3=(
+            "uefficientnet_b3": (
                 smp.Unet,
                 {
                     "encoder_name": "tu-efficientnet_b3",
@@ -70,7 +71,7 @@ class ModelFactory:
                 "efficientnet_b3",
                 "timm_smp_eff",
             ),
-            uefficientnet_b4=(
+            "uefficientnet_b4": (
                 smp.Unet,
                 {
                     "encoder_name": "tu-efficientnet_b4",
@@ -80,9 +81,9 @@ class ModelFactory:
                 "efficientnet_b4",
                 "timm_smp_eff",
             ),
-        )
+        }
 
-    def get_model(self, config, in_channels: int = 3):
+    def get_model(self, config, in_channels: int = 3):  # pylint:disable=too-complex
         """
         Instantiates model from available pool
         """
@@ -98,12 +99,16 @@ class ModelFactory:
             model = MultiLossModel(self.config)
             transforms = model.load_and_transforms()
             return model, transforms
-        elif model_type in list(self.basic_models.keys()):
+        elif model_type == "triple_loss":
+            model = TripleLossModel(self.config)
+            transforms = model.load_and_transforms()
+            return model, transforms
+        elif model_type in self.basic_models:
             model_func, kwargs, name, type_desc = self.basic_models[model_type]
 
             # if it is a smp model with timm encoder, it can only handle pretrained weights with 3 input channels
             # therefore we have to manually extend the input_channels via the below function
-            if type_desc in ["timm_smp_res", "timm_smp_eff"] and in_channels > 3:
+            if type_desc in {"timm_smp_res", "timm_smp_eff"} and in_channels > 3:
                 model = model_func(**kwargs, in_channels=3, classes=1)
             else:
                 model = model_func(**kwargs, in_channels=in_channels, classes=1)
@@ -121,7 +126,7 @@ class ModelFactory:
             # if it is a smp model with timm encoder, it can only handle pretrained weights with 3 input channels
             # therefore we have to manually extend the input_channels via the below function
             # rarely used practice
-            if type_desc in ["timm_smp_res", "timm_smp_eff"] and in_channels > 3:
+            if type_desc in {"timm_smp_res", "timm_smp_eff"} and in_channels > 3:
                 get_func, set_func = model_utils.get_set_conv1_functions(type_desc)
                 add_out_channels = in_channels - 3
                 model = model_utils.extend_first_convolution(

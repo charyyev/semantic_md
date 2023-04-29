@@ -10,7 +10,7 @@ from segmentation_models_pytorch.decoders.unet.decoder import UnetDecoder
 from segmentation_models_pytorch.encoders import get_encoder
 
 
-class MultiLossModel(nn.Module):
+class TripleLossModel(nn.Module):
     def __init__(self, config):
         super().__init__()
         self.config = config

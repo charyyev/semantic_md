@@ -96,7 +96,7 @@ class Config:
             else:
                 raise ValueError(f"{text} does not exists in config file")
 
-        return f"{list(matches)[-1]}={current_config}"
+        return f"{list(matches)[-1]}~~{current_config}"
 
     def _build_note(self):
         text = self._config["note"]

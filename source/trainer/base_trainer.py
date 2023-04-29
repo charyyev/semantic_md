@@ -106,7 +106,7 @@ class BaseTrainer:
         )
 
     def step(self, data):
-        image = data["image"].to(self.config["device"])
+        image = data["input_image"].to(self.config["device"])
         target = data["depths"].to(self.config["device"])
 
         self.optimizer.zero_grad()

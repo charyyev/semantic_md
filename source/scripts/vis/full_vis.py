@@ -71,7 +71,7 @@ class Vis:
         self.axes[0, 2].imshow(img_segs_vir)
 
         # seg post-processing
-        segs_post = data["segs"].squeeze().numpy()
+        segs_post = data["input_segs"].squeeze().numpy()
         if self.config["data_flags"]["type"] == "border":
             img_segs_post = cm.tab20b(segs_post)[:, :, :3]
             self.axes[0, 3].set_title("border")
@@ -83,9 +83,9 @@ class Vis:
             self.axes[0, 3].imshow(img_segs_post)
 
         # Prediction
-        input_ = data["image"].unsqueeze(0)
+        input_ = data["input_image"].unsqueeze(0)
         if self.config["data_flags"]["type"] == "semantic_convolution":
-            input_sem = data["segs"].unsqueeze(0)
+            input_sem = data["input_segs"].unsqueeze(0)
             pred = self.model(input_, input_sem)
         else:
             pred = self.model(input_)

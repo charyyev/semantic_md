@@ -26,7 +26,7 @@ class Vis:
 
     def update_image(self):
         data = self.dataset[self.index]
-        image = data["image"].unsqueeze(0)
+        image = data["input_image"].unsqueeze(0)
         pred = self.model(image).detach()
 
         image = image.squeeze().permute((1, 2, 0))
