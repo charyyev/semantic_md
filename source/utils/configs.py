@@ -73,10 +73,10 @@ class Config:
         if subpath not in list(subpath_dict.keys()):
             raise ValueError(f"Subpath {subpath} not known.")
         base_path = os.path.normpath(self._config["project_root_dir"])
-        # return absolute path is that is specified, else concat with root dir
-        if os.path.isabs(base_path):
-            return base_path
         path_ending = os.path.normpath(subpath_dict[subpath])
+        # return absolute path is that is specified, else concat with root dir
+        if os.path.isabs(path_ending):
+            return base_path
         return os.path.join(base_path, path_ending)
 
     def build_subpath(self, subpath):
