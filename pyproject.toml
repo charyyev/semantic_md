@@ -114,6 +114,7 @@ disable=["attribute-defined-outside-init",
     "import-error",
     "no-member",
     "no-else-return",
+    "no-else-raise",
     "pointless-exception-statement",
     "pointless-string-statement"]
 
