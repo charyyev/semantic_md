@@ -1,7 +1,8 @@
 import datetime
 import os
-from copy import deepcopy
+import re
 
+import git
 import yaml
 
 
@@ -12,6 +13,8 @@ class Config:
     """
 
     def __init__(self, file=None):
+        self.timestamp = datetime.datetime.now().strftime("%Y-%m-%d__%H-%M-%S")
+
         if file is None:
             file = "user.yaml"
         else:
@@ -37,12 +40,42 @@ class Config:
             return base
 
         self._config = load_recursive(file, [])
+        self._add_additional_info()
+
+    def _add_additional_info(self):
+        additions = {}
+
+        # git hash
+        repo = git.Repo(search_parent_directories=True)
+        sha = repo.head.object.hexsha
+        additions["git_sha"] = sha
+
+        # current timestamp
+        additions["timestamp"] = self.timestamp
+
+        self._add_metadata(additions)
+
+    def _add_metadata(self, additions: dict):
+        if "metadata" not in self._config:
+            self._config["metadata"] = {}
+
+        for k, v in additions.items():
+            if k in self._config["metadata"]:
+                raise ValueError(
+                    f"Please do not specify a {k} field in the metadata field of the "
+                    f"config, as it is later added in post-processing"
+                )
+            else:
+                self._config["metadata"][k] = v
 
     def get_subpath(self, subpath):
         subpath_dict = self._config["subpaths"]
         if subpath not in list(subpath_dict.keys()):
             raise ValueError(f"Subpath {subpath} not known.")
         base_path = os.path.normpath(self._config["project_root_dir"])
+        # return absolute path is that is specified, else concat with root dir
+        if os.path.isabs(base_path):
+            return base_path
         path_ending = os.path.normpath(subpath_dict[subpath])
         return os.path.join(base_path, path_ending)
 
@@ -51,11 +84,29 @@ class Config:
         path_ending = os.path.normpath(subpath)
         return os.path.join(base_path, path_ending)
 
+    def _replace_configs_in_note(self, match: re.Match):
+        text = match.group(1)
+        pattern = r"\[(.+?)\]"
+        matches = re.findall(pattern, text)
+
+        current_config = self._config
+        for key in list(matches):
+            if key in current_config:
+                current_config = current_config[key]
+            else:
+                raise ValueError(f"{text} does not exists in config file")
+
+        return f"{list(matches)[-1]}={current_config}"
+
+    def _build_note(self):
+        text = self._config["note"]
+        pattern = r"(config(?:\[[^\]]+\])+)"
+        return re.sub(pattern, self._replace_configs_in_note, text)
+
     def get_name_stem(self):
         name = self._config["model_type"]
-        note = self._config["note"]
-        now = datetime.datetime.now().strftime("%Y-%m-%d__%H-%M-%S")
-        name_stem = f"model_{name}_{note}___{now}"
+        note = self._build_note()
+        name_stem = f"model_{name}_{note}___{self.timestamp}"
         return name_stem
 
     def __getitem__(self, item):
