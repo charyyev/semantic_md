@@ -3,6 +3,7 @@ File is used for training the actual model.
 """
 import json
 import os
+import sys
 from abc import abstractmethod
 from collections import defaultdict
 
@@ -32,13 +33,14 @@ class BaseTrainer:
         self.writer = SummaryWriter(log_dir=self.tensorboard_dir)
 
         if self.config["wandb"]:
-            wandb.init(
+            self.run = wandb.init(
                 project=self.config["project_name"],
                 config=config.get_config(),
                 dir=self.wandb_dir,
                 id=self.id,
             )
 
+            print()
         self.flag_sanity_check(self.config["data_flags"])
 
     def prepare_loaders(self):
@@ -104,7 +106,7 @@ class BaseTrainer:
         )
 
     def step(self, data):
-        image = data["image"].to(self.config["device"])
+        image = data["input_image"].to(self.config["device"])
         target = data["depths"].to(self.config["device"])
 
         self.optimizer.zero_grad()
@@ -194,7 +196,7 @@ class BaseTrainer:
         self.model.eval()
         with torch.no_grad():
             for data in tqdm(self.train_loader):
-                loss, metrics = self.step(data)
+                _, metrics = self.step(data)
 
                 for k in metrics.keys():
                     total_metrics[k] += metrics[k]
@@ -261,11 +263,11 @@ class BaseTrainer:
     def _close(self):
         if self.config["wandb"]:
             wandb.finish(exit_code=0, quiet=False)
-        exit(0)
+        sys.exit(0)
 
     @abstractmethod
     def flag_sanity_check(self, flags):
         """
         Checks the flags for compatibility
         """
-        pass
+        id(flags)

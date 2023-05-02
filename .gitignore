@@ -4,7 +4,9 @@ cache/**
 !**/.dummy
 
 # ignore the user specific configuration file
-configs/user.yaml
+configs/**
+!configs/base.yaml
+!configs/template.yaml
 
 # ignote datasets (except README), logs, output
 data/*
