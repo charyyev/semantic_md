@@ -1,7 +1,7 @@
 from torch import nn
 
 from trainer.base_trainer import BaseTrainer
-from utils.eval_metrics import depth_metrics
+from utils.eval_metrics import depth_metrics, seg_metrics, border_metrics
 
 
 class TripleLossTrainer(BaseTrainer):
@@ -38,14 +38,19 @@ class TripleLossTrainer(BaseTrainer):
         lam_contours = self.config["hyperparameters"]["train"]["lambda_contours"]
         loss = loss_depth + lam_semantic * loss_semantic + lam_contours * loss_contours
 
-        metrics = depth_metrics(pred_depth, depth, self.epsilon, self.config)
+        metrics_depth = depth_metrics(pred_depth, depth, self.epsilon, self.config)
+        metrics_seg = seg_metrics(pred_semantic, semantic, self.epsilon, self.config)
+        metrics_contour = border_metrics(pred_contours, contours, self.epsilon, self.config)
+
 
         full_metrics = {
             "loss": loss.item(),
             "loss_depth": loss_depth.item(),
             "loss_semantic": loss_semantic.item(),
             "loss_contours": loss_contours.item(),
-            **metrics,
+            **metrics_depth,
+            **metrics_seg,
+            **metrics_contour
         }
 
         return loss, full_metrics
