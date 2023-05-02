@@ -15,9 +15,9 @@ class ShiftInvariantLoss(nn.Module):
         n = y_true.size()[-1] * y_true.size()[-2]
         diff = y_pred - y_true
 
-        left_term = torch.mean(diff**2)
+        left_term = torch.mean(diff ** 2)
         right_term = torch.sum(diff, dim=[1, 2]) ** 2
-        loss_per_item = left_term - (self.lam / (n**2)) * right_term
+        loss_per_item = left_term - (self.lam / (n ** 2)) * right_term
         return torch.mean(loss_per_item)
 
 
@@ -43,7 +43,7 @@ class BerHuLoss(nn.Module):
         loss = torch.zeros_like(diff)
         mask = diff <= c
         loss[mask] = diff[mask]
-        loss[~mask] = (diff[~mask] ** 2 + c**2) / (2 * c)
+        loss[~mask] = ((diff[~mask] ** 2) + (c ** 2)) / (2 * c)
 
         return loss
 
