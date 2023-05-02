@@ -1,4 +1,5 @@
 import torch
+from torchmetrics.classification import MulticlassJaccardIndex, MulticlassAccuracy
 
 from utils.configs import Config
 
@@ -43,6 +44,44 @@ def depth_metrics(pred, target, epsilon, config):
         "log10": log10.item(),
     }
 
+def seg_metrics(pred, target, epsilon, config):
+    
+    IoU_metric = MulticlassJaccardIndex(num_classes=config["data_flags"]["parameters"]["seg_classes"])
+    meanAcc_metric = MulticlassAccuracy(num_classes=config["data_flags"]["parameters"]["seg_classes"], 
+                                        average='macro')
+    pixelAcc_metric = MulticlassAccuracy(num_classes=config["data_flags"]["parameters"]["seg_classes"],
+                                        average='micro')
+    
+    meanIoU = IoU_metric(pred, target)
+    meanAcc = meanAcc_metric(pred, target)
+    pixelAcc = pixelAcc_metric(pred, target)
+
+    return {
+        "meanIoU": meanIoU.item(),
+        "meanAcc": meanAcc.item(),
+        "pixelAcc": pixelAcc.item()
+    }
+
+
+def border_metrics(pred, target, epsilon, config):
+
+    tp = ((pred == 1) & (target == 1)).sum().item()
+    tn = ((pred == 0) & (target == 0)).sum().item()
+    fp = ((pred == 1) & (target == 0)).sum().item()
+    fn = ((pred == 0) & (target == 1)).sum().item()
+
+    accuracy =  (tp+tn) / (tp+tn+fp+fn+epsilon)
+    precision = tp / (tp + fp + epsilon) 
+    recall = tp / (tp + fn + epsilon) 
+    f1_score = (2 * precision * recall) / (precision + recall + epsilon)
+
+    return{
+        "accuracy": accuracy,
+        "precision": precision,
+        "recall": recall,
+        "F1": f1_score
+    }
+
 
 def test():
     epsilon = 1e-18
@@ -63,7 +102,8 @@ def test():
             [[9.0, 10.0], [11.0, 12.0]],
         ]
     )
-    print(y_pred.size())
+    print(y_pred)
+    print(y_pred.item())
 
     metrics = depth_metrics(y_pred, y_target, epsilon, Config())
 

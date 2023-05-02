@@ -2,7 +2,8 @@ import numpy as np
 from torch import nn
 
 from trainer.base_trainer import BaseTrainer
-from utils.eval_metrics import depth_metrics
+from utils.eval_metrics import depth_metrics, seg_metrics
+
 
 
 class MultiLossTrainer(BaseTrainer):
@@ -29,13 +30,16 @@ class MultiLossTrainer(BaseTrainer):
         lam = self.config["hyperparameters"]["train"]["lambda_loss"]
         loss = loss_depth + lam + loss_semantic
 
-        metrics = depth_metrics(pred_depth, depth, self.epsilon, self.config)
+        metrics_depth = depth_metrics(pred_depth, depth, self.epsilon, self.config)
+        metrics_seg = seg_metrics(pred_semantic, semantic, self.epsilon, self.config)
+        
 
         full_metrics = {
             "loss": loss.item(),
             "loss_depth": loss_depth.item(),
             "loss_semantic": loss_semantic.item(),
-            **metrics,
+            **metrics_depth,
+            **metrics_seg
         }
 
         return loss, full_metrics

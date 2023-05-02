@@ -39,8 +39,8 @@ hyperparameters:
 
 transformations:
     resize:
-        width: 768
-        height: 576
+        width: 320 #previous: 768
+        height: 240 #previous: 576
     depth_range:
         min: 0
         max:  15
