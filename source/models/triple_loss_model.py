@@ -63,14 +63,14 @@ class TripleLossModel(nn.Module):
         self.head_semantic = SegmentationHead(
             in_channels=16,
             out_channels=self.config["data_flags"]["parameters"]["seg_classes"],
-            activation="sigmoid",
+            activation=None,
             kernel_size=3,
         )
 
         self.head_contours = SegmentationHead(
             in_channels=16,
-            out_channels=2,
-            activation="sigmoid",
+            out_channels=1,
+            activation=None,
             kernel_size=3,
         )
 

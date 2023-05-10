@@ -45,12 +45,17 @@ def depth_metrics(pred, target, epsilon, config):
     }
 
 def seg_metrics(pred, target, epsilon, config):
+
+    #Accuracy and JaccardIndex works with pred dim: (N, C, ...) and target dim: (N, ...)
+    #pred can be one-hot encoded but target should be compressed form
     
     IoU_metric = MulticlassJaccardIndex(num_classes=config["data_flags"]["parameters"]["seg_classes"])
     meanAcc_metric = MulticlassAccuracy(num_classes=config["data_flags"]["parameters"]["seg_classes"], 
                                         average='macro')
     pixelAcc_metric = MulticlassAccuracy(num_classes=config["data_flags"]["parameters"]["seg_classes"],
                                         average='micro')
+    
+    print("pred:", pred.size(), "target:", target.size())
     
     meanIoU = IoU_metric(pred, target)
     meanAcc = meanAcc_metric(pred, target)
@@ -103,7 +108,7 @@ def test():
         ]
     )
     print(y_pred)
-    print(y_pred.item())
+    print(y_pred.size())
 
     metrics = depth_metrics(y_pred, y_target, epsilon, Config())
 

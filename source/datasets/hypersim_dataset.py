@@ -10,8 +10,7 @@ import cv2
 from utils.conversions import (
     semantic_norm,
     semantic_to_border,
-    simplified_encode_3,
-    simplified_encode_4,
+    simplified_encode
 )
 
 """
@@ -155,7 +154,7 @@ class HyperSimDataset(Dataset):
         image_tensor = self.image_transform(image_np).float()
         depth_tensor = self.depth_transform(depth_np).float()
         seg_tensor = self.seg_transform(seg_np).float()
-        original_seg_tensor = seg_tensor
+        original_seg_tensor = simplified_encode(seg_tensor, self.data_flags["parameters"]["seg_classes"])
 
         return_dict = {
             # for input to model
@@ -171,12 +170,6 @@ class HyperSimDataset(Dataset):
         # data_flags specifies how the input_image should be computed
 
         # we first compute all needed return types
-        if self.data_flags["return_types"]["onehot"]:
-            nr_classes = self.data_flags["seg_classes"]
-            identity_matrix = torch.eye(nr_classes).to(seg_tensor.device)
-            return_dict["onehot"] = identity_matrix[seg_tensor.reshape(-1) - 1].reshape(
-                seg_tensor.shape + (nr_classes,)
-            )
 
         if self.data_flags["return_types"]["border"]:
             return_dict["border"] = (
@@ -184,15 +177,10 @@ class HyperSimDataset(Dataset):
                 .unsqueeze(0)
                 .float()
             )
-
+        
         if self.data_flags["return_types"]["simplified_onehot"]:
-            if self.data_flags["simplified_onehot_channels"] == 3:
-                seg_tensor = return_dict["simplified_onehot"] = simplified_encode_3(
-                    seg_tensor
-                )
-            elif self.data_flags["simplified_onehot_channels"] == 4:
-                seg_tensor = return_dict["simplified_onehot"] = simplified_encode_4(
-                    seg_tensor
+            seg_tensor = return_dict["simplified_onehot"] = simplified_encode(
+                    seg_tensor, self.data_flags["parameters"]["simplified_onehot_classes"]
                 )
 
         # then specify input_image based on that option
@@ -205,7 +193,7 @@ class HyperSimDataset(Dataset):
                 (image_tensor, return_dict["simplified_onehot"]), dim=0
             )
         elif self.data_flags["type"] == "concat":
-            seg_tensor = semantic_norm(seg_tensor, self.data_flags["seg_classes"])
+            seg_tensor = semantic_norm(seg_tensor, self.data_flags["parameters"]["seg_classes"])
             return_dict["input_image"] = torch.cat((image_tensor, seg_tensor), dim=0)
 
         return return_dict
@@ -223,24 +211,26 @@ def compute_transforms(transform_config, config):
         return cv2.resize(
             input_, (new_width, new_height), interpolation=cv2.INTER_NEAREST
         )
-
+    
     base_transform = (transforms.ToTensor(),)
+    crop_transform = (transforms.CenterCrop(256),)
+
 
     def image_transform(input_):
         x = resize(input_)
-        tf = transforms.Compose([*base_transform, transforms.Normalize(mean, std)])
+        tf = transforms.Compose([*base_transform, *crop_transform, transforms.Normalize(mean, std)])
         return tf(x)
 
     def depth_transform(input_):
         x = resize(input_)
         x = np.clip(x, min_depth, max_depth)
         x = (x - min_depth) / (max_depth - min_depth)
-        tf = transforms.Compose([*base_transform])
+        tf = transforms.Compose([*base_transform, *crop_transform])
         return tf(x)
 
     def seg_transform(input_):
-        x = resize(input_)
-        tf = transforms.Compose([*base_transform])
+        x = resize(input_)        
+        tf = transforms.Compose([*base_transform, *crop_transform])
         return tf(x)
 
     return image_transform, depth_transform, seg_transform

@@ -2,7 +2,6 @@ import datetime
 import os
 import re
 
-import git
 import yaml
 
 
@@ -46,9 +45,9 @@ class Config:
         additions = {}
 
         # git hash
-        repo = git.Repo(search_parent_directories=True)
-        sha = repo.head.object.hexsha
-        additions["git_sha"] = sha
+        # repo = git.Repo(search_parent_directories=True)
+        # sha = repo.head.object.hexsha
+        # additions["git_sha"] = sha
 
         # current timestamp
         additions["timestamp"] = self.timestamp
