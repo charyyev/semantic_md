@@ -17,7 +17,7 @@ class TripleLossTrainer(BaseTrainer):
         elif self.config["hyperparameters"]["train"]["depth_loss_type"] == "berhu":
             self.loss_depth = BerHuLoss(contains_nan=True)
         self.loss_semantic = nn.CrossEntropyLoss(reduction="none", ignore_index=-1)
-        self.loss_contours = nn.CrossEntropyLoss(reduction="none", ignore_index=-1)
+        self.loss_contours = nn.CrossEntropyLoss(reduction="none")
 
     def step(self, data):
         input_image = data["input_image"].to(self.config["device"])
