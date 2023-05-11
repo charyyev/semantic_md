@@ -15,6 +15,7 @@ import wandb
 from datasets import hypersim_dataset
 from models import ModelFactory
 from tqdm import tqdm
+from utils.loss_functions import BerHuLoss
 from utils.eval_metrics import depth_metrics
 from utils.logs import ProjectLogger
 from utils.loss_functions import BerHuLoss
@@ -32,6 +33,7 @@ class BaseTrainer:
         self._make_output_dir()
         self.writer = SummaryWriter(log_dir=self.tensorboard_dir)
 
+        self.logger.debug("initializing wandb")
         if self.config["wandb"]:
             self.run = wandb.init(
                 project=self.config["project_name"],
@@ -41,6 +43,8 @@ class BaseTrainer:
             )
 
             print()
+        self.logger.debug("wandb done")
+        self.logger.debug("doing data flag sanity check")
         self.flag_sanity_check(self.config["data_flags"])
 
     def prepare_loaders(self):
@@ -94,9 +98,13 @@ class BaseTrainer:
         )
         self.model.to(self.config["device"])
 
-        # self.loss = torch.nn.L1Loss(reduction="none")
-        # self.loss = torch.nn.SmoothL1Loss(reduction='none')
-        self.loss = BerHuLoss(contains_nan=True)
+        if self.config["hyperparameters"]["train"]["depth_loss_type"] == "L1":
+            self.loss = torch.nn.L1Loss(reduction="none")
+        elif self.config["hyperparameters"]["train"]["depth_loss_type"] == "berhu":
+            self.loss = BerHuLoss(contains_nan=True)
+        else:
+            raise ValueError("Please specify correct depth loss")
+            
         self.nan_reduction = torch.nanmean
         self.optimizer = torch.optim.Adam(
             self.model.parameters(), lr=learning_rate, weight_decay=weight_decay
@@ -176,7 +184,7 @@ class BaseTrainer:
         for epoch in range(1, self.config["hyperparameters"]["train"]["epochs"] + 1):
             train_metrics = self.train_one_epoch(epoch)
 
-            if epoch % self.config["hyperparameters"]["train"]["save_every"] == 0:
+            if epoch % self.config["hyperparameters"]["train"]["save_every"] == 0 or epoch == self.config["hyperparameters"]["train"]["epochs"]:
                 path = os.path.join(self.checkpoints_dir, f"epoch_{epoch}")
                 self._save_state(path)
 
@@ -195,7 +203,7 @@ class BaseTrainer:
 
         self.model.eval()
         with torch.no_grad():
-            for data in tqdm(self.train_loader):
+            for data in tqdm(self.val_loader):
                 _, metrics = self.step(data)
 
                 for k in metrics.keys():

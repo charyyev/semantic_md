@@ -70,7 +70,7 @@ class TripleLossModel(nn.Module):
         self.head_contours = SegmentationHead(
             in_channels=16,
             out_channels=1,
-            activation="sigmoid",
+            activation=None,
             kernel_size=3,
         )
 

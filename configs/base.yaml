@@ -20,27 +20,27 @@ subpaths:
     saved_figures: "saved_figures"
 
 data_flags:
-    # can be concat, onehot, border, semantic_convolution, simplified_onehot
+    # can be concat, border, semantic_convolution, simplified_onehot
     type: null
     parameters:
         seg_classes: 40
         simplified_onehot_classes: 3
     return_types:
-        onehot: false
         border: false
         simplified_onehot: false
 
 hyperparameters:
     train:
-        batch_size: 8
+        batch_size: 16
         learning_rate: 0.001
-        epochs: 20
+        epochs: 10
         weight_decay: 0
         save_every: 5
         lambda_semantic: 1.
         lambda_contours: 1.
+        depth_loss_type: "L1"
     val:
-        batch_size: 8
+        batch_size: 16
         val_every: 1
 
 transformations:

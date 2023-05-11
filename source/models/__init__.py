@@ -141,15 +141,11 @@ class ModelFactory:
             model = semantic_convolution.SemanticConvolutionModel(
                 model, in_channels, get_func, set_func
             )
-        elif data_flags["type"] == "onehot":
-            model = onehot.OneHotModel(
-                model, data_flags["seg_classes"], get_func, set_func
-            )
         elif data_flags["type"] == "concat":
             model = concat.ConcatModel(model, get_func, set_func)
         elif data_flags["type"] == "border":
             model = border.BorderModel(model, get_func, set_func)
         elif data_flags["type"] == "simplified_onehot":
-            model = simplified_onehot.SimplifiedOneHotModel(model, get_func, set_func)
+            model = simplified_onehot.SimplifiedOneHotModel(model, get_func, set_func, data_flags["parameters"]["simplified_onehot_classes"])
 
         return model, transforms
