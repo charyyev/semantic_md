@@ -2,7 +2,7 @@ from torch import nn
 
 from trainer.base_trainer import BaseTrainer
 from utils.eval_metrics import depth_metrics, seg_metrics
-
+from utils.loss_functions import BerHuLoss
 
 
 class MultiLossTrainer(BaseTrainer):
@@ -34,14 +34,13 @@ class MultiLossTrainer(BaseTrainer):
 
         metrics_depth = depth_metrics(pred_depth, depth, self.epsilon, self.config)
         metrics_seg = seg_metrics(pred_semantic, semantic, self.epsilon, self.config)
-        
 
         full_metrics = {
             "loss": loss.item(),
             "loss_depth": loss_depth.item(),
             "loss_semantic": loss_semantic.item(),
             **metrics_depth,
-            **metrics_seg
+            **metrics_seg,
         }
 
         return loss, full_metrics

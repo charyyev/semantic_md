@@ -44,8 +44,9 @@ class TripleLossTrainer(BaseTrainer):
 
         metrics_depth = depth_metrics(pred_depth, depth, self.epsilon, self.config)
         metrics_seg = seg_metrics(pred_semantic, semantic, self.epsilon, self.config)
-        metrics_contour = border_metrics(pred_contours, contours, self.epsilon, self.config)
-
+        metrics_contour = border_metrics(
+            pred_contours, contours, self.epsilon, self.config
+        )
 
         full_metrics = {
             "loss": loss.item(),
@@ -54,7 +55,7 @@ class TripleLossTrainer(BaseTrainer):
             "loss_contours": loss_contours.item(),
             **metrics_depth,
             **metrics_seg,
-            **metrics_contour
+            **metrics_contour,
         }
 
         return loss, full_metrics
