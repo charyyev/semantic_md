@@ -95,9 +95,11 @@ class BaseVisualizer:
         self.fig.canvas.draw()
 
     def _save_image(self):
-        base_path = self.config["visualize"]["save_path"]
+        base_path = self.config.get_subpath("saved_figures")
         os.makedirs(base_path, exist_ok=True)
-        file_name = os.path.join(base_path, f"Image_{self.index}")
+        file_name = os.path.join(
+            base_path, f"Image_{self.index}_{self.config['visualize']['model_path']}"
+        )
         plt.savefig(file_name)
         self.axes[0, 0].text(
             0, -60, "Saved", bbox={"facecolor": "grey", "alpha": 0.5}, fontsize=20

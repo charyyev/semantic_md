@@ -23,7 +23,7 @@ class ModelVisualizer(BaseVisualizer):
         ) = hypersim_dataset.compute_transforms(transform_config, self.config)
 
         data_dir = self.config.get_subpath("data_location")
-        val_file_path = self.config.get_subpath("val_data")
+        val_file_path = self.config.get_subpath("train_data")
 
         self.dataset = hypersim_dataset.HyperSimDataset(
             data_dir=data_dir,

@@ -3,7 +3,6 @@ File is used for training the actual model.
 """
 import json
 import os
-import sys
 from abc import abstractmethod
 from collections import defaultdict
 
@@ -16,9 +15,9 @@ import wandb
 from datasets import hypersim_dataset
 from models import ModelFactory
 from tqdm import tqdm
-from utils.loss_functions import BerHuLoss
 from utils.eval_metrics import depth_metrics
 from utils.logs import ProjectLogger
+from utils.loss_functions import BerHuLoss
 
 
 class BaseTrainer:
@@ -104,6 +103,7 @@ class BaseTrainer:
             self.loss = BerHuLoss(contains_nan=True)
         else:
             raise ValueError("Please specify correct depth loss")
+
         self.nan_reduction = torch.nanmean
         self.optimizer = torch.optim.Adam(
             self.model.parameters(), lr=learning_rate, weight_decay=weight_decay
@@ -126,7 +126,7 @@ class BaseTrainer:
 
         # print(loss.item())
 
-        full_metrics = {"loss": loss.item(), **metrics}
+        full_metrics = {"depth_loss": loss.item(), **metrics}
 
         return loss, full_metrics
 
@@ -183,7 +183,10 @@ class BaseTrainer:
         for epoch in range(1, self.config["hyperparameters"]["train"]["epochs"] + 1):
             train_metrics = self.train_one_epoch(epoch)
 
-            if epoch % self.config["hyperparameters"]["train"]["save_every"] == 0 or epoch == self.config["hyperparameters"]["train"]["epochs"]:
+            if (
+                epoch % self.config["hyperparameters"]["train"]["save_every"] == 0
+                or epoch == self.config["hyperparameters"]["train"]["epochs"]
+            ):
                 path = os.path.join(self.checkpoints_dir, f"epoch_{epoch}")
                 self._save_state(path)
 
@@ -270,7 +273,7 @@ class BaseTrainer:
     def _close(self):
         if self.config["wandb"]:
             wandb.finish(exit_code=0, quiet=False)
-        sys.exit(0)
+        # sys.exit(0)
 
     @abstractmethod
     def flag_sanity_check(self, flags):
