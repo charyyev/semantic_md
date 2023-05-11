@@ -10,7 +10,8 @@ import cv2
 from utils.conversions import (
     semantic_norm,
     semantic_to_border,
-    simplified_encode
+    simplified_encode,
+    semantic_encode
 )
 
 """
@@ -154,7 +155,8 @@ class HyperSimDataset(Dataset):
         image_tensor = self.image_transform(image_np).float()
         depth_tensor = self.depth_transform(depth_np).float()
         seg_tensor = self.seg_transform(seg_np).float()
-        original_seg_tensor = simplified_encode(seg_tensor, self.data_flags["parameters"]["seg_classes"])
+        #original_seg_tensor = seg_tensor
+        original_seg_tensor = semantic_encode(seg_tensor, self.data_flags["parameters"]["seg_classes"])
 
         return_dict = {
             # for input to model

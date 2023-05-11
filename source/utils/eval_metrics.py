@@ -1,5 +1,10 @@
 import torch
-from torchmetrics.classification import MulticlassJaccardIndex, MulticlassAccuracy
+from torchmetrics.functional.classification import multiclass_jaccard_index
+from torchmetrics.functional.classification import multiclass_accuracy
+#from torchmetrics.classification import MulticlassJaccardIndex, MulticlassAccuracy
+import sklearn
+from sklearn.metrics import accuracy_score, confusion_matrix, jaccard_score
+import numpy as np
 
 from utils.configs import Config
 
@@ -46,25 +51,19 @@ def depth_metrics(pred, target, epsilon, config):
 
 def seg_metrics(pred, target, epsilon, config):
 
-    #Accuracy and JaccardIndex works with pred dim: (N, C, ...) and target dim: (N, ...)
-    #pred can be one-hot encoded but target should be compressed form
-    
-    IoU_metric = MulticlassJaccardIndex(num_classes=config["data_flags"]["parameters"]["seg_classes"])
-    meanAcc_metric = MulticlassAccuracy(num_classes=config["data_flags"]["parameters"]["seg_classes"], 
-                                        average='macro')
-    pixelAcc_metric = MulticlassAccuracy(num_classes=config["data_flags"]["parameters"]["seg_classes"],
-                                        average='micro')
-    
-    print("pred:", pred.size(), "target:", target.size())
-    
-    meanIoU = IoU_metric(pred, target)
-    meanAcc = meanAcc_metric(pred, target)
-    pixelAcc = pixelAcc_metric(pred, target)
+    pred = torch.squeeze(torch.argmax(pred, dim=1))
+    mask = torch.ne(target, -1)
+    target = torch.masked_select(target, mask).cpu().numpy()
+    pred = torch.masked_select(pred, mask).cpu().numpy()
+    meanIoU = jaccard_score(target, pred, average='macro')
+    pixelAcc = accuracy_score(target, pred)
+    cm_acc = confusion_matrix(target, pred)
+    meanAcc = np.mean(cm_acc.diagonal()/(cm_acc.sum(axis=1)+epsilon))
 
     return {
-        "meanIoU": meanIoU.item(),
-        "meanAcc": meanAcc.item(),
-        "pixelAcc": pixelAcc.item()
+        "meanIoU": meanIoU,
+        "meanAcc": meanAcc,
+        "pixelAcc": pixelAcc
     }
 
 
@@ -89,7 +88,7 @@ def border_metrics(pred, target, epsilon, config):
 
 
 def test():
-    epsilon = 1e-18
+    epsilon = 1e-4
     # create an example 3D tensor with predicted and true values
     y_pred = torch.tensor(
         [
@@ -107,12 +106,26 @@ def test():
             [[9.0, 10.0], [11.0, 12.0]],
         ]
     )
-    print(y_pred)
-    print(y_pred.size())
+    #print(y_pred)
+    #print(y_pred.size())
 
-    metrics = depth_metrics(y_pred, y_target, epsilon, Config())
+    s_pred = torch.tensor(
+        [
+            [0, 0, 0],
+            [1, 1, 1],
+            [2, 2, 2],
+        ]
+        )
+    
+    s_target = torch.tensor(
+        [
+            [0, 1, 0],
+            [1, -1, 1],
+            [0, 1, 2],
+        ]
+        )
 
-    # print the loss value
+    metrics = seg_metrics(s_pred, s_target, epsilon)
     print(metrics)
 
 

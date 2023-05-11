@@ -3,6 +3,12 @@ import torch
 
 import cv2
 
+def semantic_encode(seg_tensor, num_encode):
+    seg_tensor = simplified_encode(seg_tensor, num_encode)
+    seg_tensor = torch.cat((torch.zeros_like(seg_tensor[:1,:,:]), seg_tensor), dim=0)
+    return torch.argmax(seg_tensor, dim=0) - 1
+
+
 def simplified_encode(seg_tensor, num_encode):
     """
     Semantic labels are 1-40(inclusive), no 0 present, -1 means unlabeled: https://github.com/apple/ml-hypersim/issues/12
@@ -98,7 +104,7 @@ def test():
 
     print(seg_tensor)
     print(seg_tensor.shape)
-    seg_encoded = simplified_encode(seg_tensor, 4)
+    seg_encoded = semantic_encode(seg_tensor, 4)
     print(seg_encoded)
     print(seg_encoded.shape)
 

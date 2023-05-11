@@ -1,3 +1,4 @@
+import torch
 from torch import nn
 
 from trainer.base_trainer import BaseTrainer
@@ -15,15 +16,14 @@ class TripleLossTrainer(BaseTrainer):
             self.loss_depth = nn.L1Loss(reduction="none")
         elif self.config["hyperparameters"]["train"]["depth_loss_type"] == "berhu":
             self.loss_depth = BerHuLoss(contains_nan=True)
-        self.loss_semantic = nn.CrossEntropyLoss(reduction="none")
-        self.loss_contours = nn.CrossEntropyLoss(reduction="none")
+        self.loss_semantic = nn.CrossEntropyLoss(reduction="none", ignore_index=-1)
+        self.loss_contours = nn.CrossEntropyLoss(reduction="none", ignore_index=-1)
 
     def step(self, data):
         input_image = data["input_image"].to(self.config["device"])
         depth = data["depths"].to(self.config["device"])
-        semantic = data["input_segs"].to(self.config["device"])
+        semantic = data["original_seg"].to(self.config["device"])
         semantic = semantic.squeeze().long()
-        #semantic = semantic.squeeze().long() - 1
         contours = data["border"].to(self.config["device"])
         contours = contours.squeeze().long()
 
