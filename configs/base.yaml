@@ -2,7 +2,7 @@
 # See configs/template.yaml for an example how to create a deviating configuration file
 # By default the config/user.yaml configuration file is used.
 
-model_type: "triple_loss"
+model_type: "multi_loss"
 note: "overfit_lambda_exploration_config[hyperparamters][train][lambda_semantic]_config[hyperparamters][train][lambda_contours]"
 device: "cuda"
 resume_training: false
@@ -17,6 +17,7 @@ subpaths:
     load: ""
     pretrained_weights_path: "pretrained_weights"
     logs: "logs"
+    saved_figures: "saved_figures"
 
 data_flags:
     # can be concat, border, semantic_convolution, simplified_onehot

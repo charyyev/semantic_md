@@ -3,9 +3,10 @@ import torch
 
 import cv2
 
+
 def semantic_encode(seg_tensor, num_encode):
     seg_tensor = simplified_encode(seg_tensor, num_encode)
-    seg_tensor = torch.cat((torch.zeros_like(seg_tensor[:1,:,:]), seg_tensor), dim=0)
+    seg_tensor = torch.cat((torch.zeros_like(seg_tensor[:1, :, :]), seg_tensor), dim=0)
     return torch.argmax(seg_tensor, dim=0) - 1
 
 
@@ -15,8 +16,48 @@ def simplified_encode(seg_tensor, num_encode):
     Semantic labels: https://github.com/apple/ml-hypersim/blob/main/code/cpp/tools/scene_annotation_tool/semantic_label_descs.csv
     seg_class_order is the order of relevance of the segmentation classes
     """
-    seg_class_order = [1,  2, 22,  9, 38,  5,  3, 40,  7,  6, 13,  8, 35, 20,  4, 14, 39, 18, 11, 12, 
-                   10, 23, 19, 36, 15, 25, 34, 17, 24, 21, 32, 16, 27, 29, 26, 33, 30, 31, 37, 28]
+    seg_class_order = [
+        1,
+        2,
+        22,
+        9,
+        38,
+        5,
+        3,
+        40,
+        7,
+        6,
+        13,
+        8,
+        35,
+        20,
+        4,
+        14,
+        39,
+        18,
+        11,
+        12,
+        10,
+        23,
+        19,
+        36,
+        15,
+        25,
+        34,
+        17,
+        24,
+        21,
+        32,
+        16,
+        27,
+        29,
+        26,
+        33,
+        30,
+        31,
+        37,
+        28,
+    ]
     seg_tensor = torch.squeeze(seg_tensor)
     seg_encoded = torch.zeros(num_encode, seg_tensor.shape[0], seg_tensor.shape[1])
     for i in range(0, num_encode):

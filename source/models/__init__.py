@@ -146,6 +146,11 @@ class ModelFactory:
         elif data_flags["type"] == "border":
             model = border.BorderModel(model, get_func, set_func)
         elif data_flags["type"] == "simplified_onehot":
-            model = simplified_onehot.SimplifiedOneHotModel(model, get_func, set_func, data_flags["parameters"]["simplified_onehot_classes"])
+            model = simplified_onehot.SimplifiedOneHotModel(
+                model,
+                get_func,
+                set_func,
+                data_flags["parameters"]["simplified_onehot_classes"],
+            )
 
         return model, transforms
