@@ -225,22 +225,25 @@ def compute_transforms(transform_config, config):
         )
 
     base_transform = (transforms.ToTensor(),)
+    crop_transform = (transforms.CenterCrop(256),)
 
     def image_transform(input_):
         x = resize(input_)
-        tf = transforms.Compose([*base_transform, transforms.Normalize(mean, std)])
+        tf = transforms.Compose(
+            [*base_transform, *crop_transform, transforms.Normalize(mean, std)]
+        )
         return tf(x)
 
     def depth_transform(input_):
         x = resize(input_)
         x = np.clip(x, min_depth, max_depth)
         x = (x - min_depth) / (max_depth - min_depth)
-        tf = transforms.Compose([*base_transform])
+        tf = transforms.Compose([*base_transform, *crop_transform])
         return tf(x)
 
     def seg_transform(input_):
         x = resize(input_)
-        tf = transforms.Compose([*base_transform])
+        tf = transforms.Compose([*base_transform, *crop_transform])
         return tf(x)
 
     return image_transform, depth_transform, seg_transform

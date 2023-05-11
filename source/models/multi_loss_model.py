@@ -54,7 +54,7 @@ class MultiLossModel(nn.Module):
         self.head_semantic = SegmentationHead(
             in_channels=16,
             out_channels=self.config["data_flags"]["parameters"]["seg_classes"],
-            activation="sigmoid",
+            activation=None,
             kernel_size=3,
         )
 

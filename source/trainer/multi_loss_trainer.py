@@ -26,7 +26,7 @@ class MultiLossTrainer(BaseTrainer):
         loss_semantic = self.nan_reduction(loss_semantic)
 
         lam = self.config["hyperparameters"]["train"]["lambda_semantic"]
-        loss = loss_depth + lam + loss_semantic
+        loss = loss_depth + lam * loss_semantic
 
         metrics = depth_metrics(pred_depth, depth, self.epsilon, self.config)
 

@@ -3,7 +3,6 @@ File is used for training the actual model.
 """
 import json
 import os
-import sys
 from abc import abstractmethod
 from collections import defaultdict
 
@@ -18,6 +17,7 @@ from models import ModelFactory
 from tqdm import tqdm
 from utils.eval_metrics import depth_metrics
 from utils.logs import ProjectLogger
+from utils.loss_functions import BerHuLoss
 
 
 class BaseTrainer:
@@ -94,9 +94,9 @@ class BaseTrainer:
         )
         self.model.to(self.config["device"])
 
-        self.loss = torch.nn.L1Loss(reduction="none")
+        # self.loss = torch.nn.L1Loss(reduction="none")
         # self.loss = torch.nn.SmoothL1Loss(reduction='none')
-        # self.loss = BerHuLoss(contains_nan=True)
+        self.loss = BerHuLoss(contains_nan=True)
         self.nan_reduction = torch.nanmean
         self.optimizer = torch.optim.Adam(
             self.model.parameters(), lr=learning_rate, weight_decay=weight_decay
@@ -119,7 +119,7 @@ class BaseTrainer:
 
         # print(loss.item())
 
-        full_metrics = {"loss": loss.item(), **metrics}
+        full_metrics = {"depth_loss": loss.item(), **metrics}
 
         return loss, full_metrics
 
@@ -263,7 +263,7 @@ class BaseTrainer:
     def _close(self):
         if self.config["wandb"]:
             wandb.finish(exit_code=0, quiet=False)
-        sys.exit(0)
+        # sys.exit(0)
 
     @abstractmethod
     def flag_sanity_check(self, flags):

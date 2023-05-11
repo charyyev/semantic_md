@@ -17,6 +17,7 @@ subpaths:
     load: ""
     pretrained_weights_path: "pretrained_weights"
     logs: "logs"
+    saved_figures: "saved_figures"
 
 data_flags:
     # can be concat, onehot, border, semantic_convolution, simplified_onehot
@@ -44,8 +45,8 @@ hyperparameters:
 
 transformations:
     resize:
-        width: 768
-        height: 576
+        width: 342 #previous: 768
+        height: 256 #previous: 576
     depth_range:
         min: 0
         max:  15
