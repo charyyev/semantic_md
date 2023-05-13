@@ -23,7 +23,7 @@ class ModelVisualizer(BaseVisualizer):
         ) = hypersim_dataset.compute_transforms(transform_config, self.config)
 
         data_dir = self.config.get_subpath("data_location")
-        val_file_path = self.config.get_subpath("train_data")
+        val_file_path = self.config.get_subpath("val_data")
 
         self.dataset = hypersim_dataset.HyperSimDataset(
             data_dir=data_dir,
@@ -74,6 +74,7 @@ class ModelVisualizer(BaseVisualizer):
 
         # seg post-processing
         segs_post = data["input_segs"].squeeze().numpy()
+        img_segs_post = None
         if self.config["data_flags"]["type"] == "border":
             img_segs_post = cm.tab20b(segs_post)[:, :, :3]
             self.axes[0, 3].set_title("border")
@@ -99,3 +100,9 @@ class ModelVisualizer(BaseVisualizer):
         diff = np.abs(depths - pred)
         self.axes[1, 1].set_title("difference")
         self.axes[1, 1].imshow(diff, cmap="viridis")
+
+        self.current_downloads = {
+            "image": (image, False),
+            "depths": (np.nan_to_num(depths, copy=False, nan=0.5), True),
+            "pred": (pred, True),
+        }
