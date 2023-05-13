@@ -66,6 +66,7 @@ def seg_metrics(pred, target, epsilon, config):
 
 
 def border_metrics(pred, target, epsilon, config):
+    pred = torch.squeeze(torch.argmax(pred, dim=1))
     tp = ((pred == 1) & (target == 1)).sum().item()
     tn = ((pred == 0) & (target == 0)).sum().item()
     fp = ((pred == 1) & (target == 0)).sum().item()
