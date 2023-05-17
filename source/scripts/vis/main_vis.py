@@ -8,8 +8,9 @@ from utils.configs import Config
 
 def main():
     mlp.use("TkAgg")
-    config = Config()
+    config = Config("visualize")
     model_type = config["visualize"]["model_type"]
+    config["model_type"] = model_type
     if model_type is None:
         vis = BaseVisualizer(config)
     elif model_type == "multi_loss":
