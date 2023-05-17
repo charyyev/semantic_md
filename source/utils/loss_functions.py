@@ -105,34 +105,6 @@ class FocalTverskyLoss(nn.Module):
 
 
 def test():
-    # create an example 3D tensor with predicted and true values
-    # y_pred = torch.tensor(
-    #     [
-    #         [[1.2, 2.4], [3.6, 4.8]],
-    #         [[5.1, 6.2], [7.3, 8.4]],
-    #         [[9.5, 10.6], [11.7, 12.8]],
-    #     ]
-    # )
-    # y_true = torch.tensor(
-    #     [
-    #         [[1.0, 2.0], [3.0, 4.0]],
-    #         [[5.0, 6.0], [7.0, 8.0]],
-    #         [[9.0, 10.0], [11.0, 12.0]],
-    #     ]
-    # )
-    # y_true[y_true == 2.0] = float("nan")
-    # print(y_pred.size())
-    # print(y_true)
-
-    # instantiate your custom loss function
-    # criterion = BerHuLoss()
-
-    # compute the loss between y_pred and y_true
-    # loss = criterion(y_pred, y_true)
-
-    # print the loss value
-    # print("Loss:", loss.item())
-
     s_pred = torch.tensor(
         [
             [
@@ -161,9 +133,6 @@ def test():
     # compute the loss between y_pred and y_true
     loss = criterion(s_pred, s_target)
     print(loss)
-
-    # print the loss value
-    # print("Loss:", loss.item())
 
 
 if __name__ == "__main__":
