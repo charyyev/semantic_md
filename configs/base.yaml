@@ -2,7 +2,7 @@
 # See configs/template.yaml for an example how to create a deviating configuration file
 # By default the config/user.yaml configuration file is used.
 
-model_type: "sobel_loss"
+model_type: "semantic_baseline"
 note: "sobel_experiments"
 device: "cuda"
 
@@ -37,7 +37,7 @@ data_flags:
     return_types:
         border: false
         simplified_onehot: false
-        sobel: true
+        sobel: false
 
 hyperparameters:
     train:
