@@ -39,6 +39,10 @@ hyperparameters:
         lambda_semantic: 1.
         lambda_contours: 1.
         depth_loss_type: "L1"
+        semantic_loss_type: "CE" #can be CE, Dice, FTL, Dice_CE, FTL_CE
+        weight_lambda: 0.5
+        weight_alpha: 0.8
+        weight_gamma: 1.5
     val:
         batch_size: 16
         val_every: 1

@@ -2,7 +2,7 @@ from torch import nn
 
 from trainer.base_trainer import BaseTrainer
 from utils.eval_metrics import border_metrics, depth_metrics, seg_metrics
-from utils.loss_functions import BerHuLoss
+from utils.loss_functions import BerHuLoss, DiceLoss, FocalTverskyLoss
 
 
 class TripleLossTrainer(BaseTrainer):
@@ -16,7 +16,28 @@ class TripleLossTrainer(BaseTrainer):
             self.loss_depth = nn.L1Loss(reduction="none")
         elif self.config["hyperparameters"]["train"]["depth_loss_type"] == "berhu":
             self.loss_depth = BerHuLoss(contains_nan=True)
-        self.loss_semantic = nn.CrossEntropyLoss(reduction="none", ignore_index=-1)
+
+        if self.config["hyperparameters"]["train"]["semantic_loss_type"] == "CE":
+            self.loss_semantic = nn.CrossEntropyLoss(reduction="none", ignore_index=-1)
+        elif self.config["hyperparameters"]["train"]["semantic_loss_type"] == "Dice":
+            self.loss_semantic = DiceLoss(num_encode=self.config["data_flags"]["parameters"]["seg_classes"])
+        elif self.config["hyperparameters"]["train"]["semantic_loss_type"] == "FTL":
+            self.loss_semantic = FocalTverskyLoss(
+                alpha=self.config["hyperparameters"]["train"]["weight_alpha"],
+                gamma=self.config["hyperparameters"]["train"]["weight_gamma"],
+                num_encode=self.config["data_flags"]["parameters"]["seg_classes"]
+                )
+        elif self.config["hyperparameters"]["train"]["semantic_loss_type"] == "Dice_CE":
+            self.loss_semanticCE = nn.CrossEntropyLoss(reduction="none", ignore_index=-1)
+            self.loss_semanticOther = DiceLoss(num_encode=self.config["data_flags"]["parameters"]["seg_classes"])
+        elif self.config["hyperparameters"]["train"]["semantic_loss_type"] == "FTL_CE":
+            self.loss_semanticCE = nn.CrossEntropyLoss(reduction="none", ignore_index=-1)
+            self.loss_semanticOther = FocalTverskyLoss(
+                alpha=self.config["hyperparameters"]["train"]["weight_alpha"],
+                gamma=self.config["hyperparameters"]["train"]["weight_gamma"],
+                num_encode=self.config["data_flags"]["parameters"]["seg_classes"]
+            )
+
         self.loss_contours = nn.CrossEntropyLoss(reduction="none")
 
     def step(self, data):
@@ -33,8 +54,24 @@ class TripleLossTrainer(BaseTrainer):
         # clamp values to >0
         loss_depth = self.loss_depth(pred_depth, depth)
         loss_depth = self.nan_reduction(loss_depth)
-        loss_semantic = self.loss_semantic(pred_semantic, semantic)
-        loss_semantic = self.nan_reduction(loss_semantic)
+
+        # loss_semantic = self.loss_semantic(pred_semantic, semantic)
+        # loss_semantic = self.nan_reduction(loss_semantic)
+        if (self.config["hyperparameters"]["train"]["semantic_loss_type"] == "Dice_CE"
+            ) or (
+            self.config["hyperparameters"]["train"]["semantic_loss_type"] == "FTL_CE"
+            ):
+            loss_semanticCE = self.loss_semanticCE(pred_semantic, semantic)
+            loss_semanticCE = self.nan_reduction(loss_semanticCE)
+            loss_semanticOther = self.loss_semanticOther(pred_semantic, semantic)
+            loss_semantic = (loss_semanticCE * 
+                             self.config["hyperparameters"]["train"]["weight_lambda"]
+                             ) + (loss_semanticOther * 
+                                  (1- self.config["hyperparameters"]["train"]["weight_lambda"])
+                                  )
+        else:
+            loss_semantic = self.loss_semantic(pred_semantic, semantic)
+        
         loss_contours = self.loss_contours(pred_contours, contours)
         loss_contours = self.nan_reduction(loss_contours)
 
