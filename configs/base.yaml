@@ -2,13 +2,20 @@
 # See configs/template.yaml for an example how to create a deviating configuration file
 # By default the config/user.yaml configuration file is used.
 
-model_type: "multi_loss"
-note: "overfit_lambda_exploration_config[hyperparamters][train][lambda_semantic]_config[hyperparamters][train][lambda_contours]"
+model_type: "sobel_loss"
+note: "sobel_experiments"
 device: "cuda"
-resume_training: false
-resume_from: 0
-wandb: false
 
+wandb:
+    wandb: true
+    entity: "semantic_md"
+    project: "tests"
+    group: "sobel"
+
+resume:
+    resume_training: false
+    path: "/home/oliver/Documents/University/2023/ext-projects/3dv/output/model_multi_loss_overfit_lambda_exploration_lambda_semantic~~0.1___2023-04-30__17-48-47/checkpoints/epoch_200"
+    epoch: 0
 subpaths:
     output: "../output"
     data_location: "../HyperSim_Data_extracted"
@@ -24,10 +31,13 @@ data_flags:
     type: null
     parameters:
         seg_classes: 40
-        simplified_onehot_classes: 3
+        simplified_onehot_classes: 40
+        sobel_threshold: 20
+        sobel_ksize: 5
     return_types:
         border: false
         simplified_onehot: false
+        sobel: true
 
 hyperparameters:
     train:
@@ -36,10 +46,16 @@ hyperparameters:
         epochs: 15
         weight_decay: 0
         save_every: 2
-        lambda_semantic: 0.1
-        lambda_contours: 0.1
+        # depth parameters
         depth_loss_type: "L1"
+        # semantic
+        lambda_semantic: 0.5
         semantic_loss_type: "CE" #can be CE, Dice, FTL, Dice_CE, FTL_CE
+        # contours
+        lambda_contours: 0.5
+        # sobel
+        lambda_sobel: 1
+        # other
         weight_lambda: 0.5
         weight_alpha: 0.8
         weight_gamma: 1.5

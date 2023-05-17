@@ -3,6 +3,7 @@ import argparse
 from trainer.base_trainer import BaseTrainer
 from trainer.multi_loss_trainer import MultiLossTrainer
 from trainer.semantic_convolution_trainer import SemanticConvolutionTrainer
+from trainer.sobel_trainer import SobelTrainer
 from trainer.triple_loss_trainer import TripleLossTrainer
 from utils.configs import Config
 
@@ -22,6 +23,8 @@ def main():
 
     if config["data_flags"]["type"] == "semantic_convolution":
         agent = SemanticConvolutionTrainer(config)
+    elif config["model_type"] == "sobel_loss":
+        agent = SobelTrainer(config)
     elif config["model_type"] == "multi_loss":
         agent = MultiLossTrainer(config)
     elif config["model_type"] == "triple_loss":

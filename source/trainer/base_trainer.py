@@ -33,9 +33,11 @@ class BaseTrainer:
         self.writer = SummaryWriter(log_dir=self.tensorboard_dir)
 
         self.logger.debug("initializing wandb")
-        if self.config["wandb"]:
+        if self.config["wandb"]["wandb"]:
             self.run = wandb.init(
-                project=self.config["project_name"],
+                entity=self.config["wandb"]["entity"],
+                project=self.config["wandb"]["project"],
+                group=self.config["wandb"]["group"],
                 config=config.get_config(),
                 dir=self.wandb_dir,
                 id=self.id,
@@ -166,7 +168,7 @@ class BaseTrainer:
 
     def train(self):
         # so logging starts at 1
-        if self.config["wandb"]:
+        if self.config["wandb"]["wandb"]:
             wandb.log({})
         self.logger.info(str(self.config))
 
@@ -175,12 +177,16 @@ class BaseTrainer:
         with open(config_save_path, "w", encoding="UTF-8") as file:
             json.dump(self.config.get_config(), file)
 
-        if self.config["resume_training"]:
-            path = self.config.get_subpath("resume_from")
+        start_epoch = 1
+        if self.config["resume"]["resume_training"]:
+            path = self.config["resume"]["path"]
             self.logger.info(f"Resuming training from {path}")
             self._load_state(path)
+            start_epoch = self.config["resume"]["epoch"]
 
-        for epoch in range(1, self.config["hyperparameters"]["train"]["epochs"] + 1):
+        for epoch in range(
+            start_epoch, self.config["hyperparameters"]["train"]["epochs"] + 1
+        ):
             train_metrics = self.train_one_epoch(epoch)
 
             if (
@@ -239,7 +245,7 @@ class BaseTrainer:
         os.makedirs(self.best_checkpoints_dir, exist_ok=False)
         os.makedirs(self.tensorboard_dir, exist_ok=False)
 
-        if self.config["wandb"]:
+        if self.config["wandb"]["wandb"]:
             self.wandb_dir = os.path.join(self.output_dir, "wandb")
             os.makedirs(self.wandb_dir, exist_ok=False)
 
@@ -254,6 +260,7 @@ class BaseTrainer:
     def _load_state(self, path):
         model_path = os.path.join(path, self.config["save_names"]["weights"])
         optimizer_path = os.path.join(path, self.config["save_names"]["optimizer"])
+        config_path = os.path.join(path, "config.json")
 
         model_state_dict = torch.load(model_path, map_location=self.config["device"])
         optimizer_state_dict = torch.load(
@@ -267,11 +274,11 @@ class BaseTrainer:
         for name, value in log_dict.items():
             self.writer.add_scalar(name, value, epoch)
             self.logger.info(f"{name}: {value:.5f}")
-        if self.config["wandb"]:
+        if self.config["wandb"]["wandb"]:
             wandb.log(log_dict)
 
     def _close(self):
-        if self.config["wandb"]:
+        if self.config["wandb"]["wandb"]:
             wandb.finish(exit_code=0, quiet=False)
         # sys.exit(0)
 

@@ -8,6 +8,7 @@ from torchvision.transforms import transforms
 
 import cv2
 from utils.conversions import (
+    depth_to_sobel,
     semantic_encode,
     semantic_norm,
     semantic_to_border,
@@ -178,6 +179,17 @@ class HyperSimDataset(Dataset):
         if self.data_flags["return_types"]["border"]:
             return_dict["border"] = (
                 torch.from_numpy(semantic_to_border(seg_tensor.squeeze().numpy()))
+                .unsqueeze(0)
+                .float()
+            )
+
+        if self.data_flags["return_types"]["sobel"]:
+            threshold = self.data_flags["parameters"]["sobel_threshold"]
+            ksize = self.data_flags["parameters"]["sobel_ksize"]
+            return_dict["sobel"] = (
+                torch.from_numpy(
+                    depth_to_sobel(depth_tensor.squeeze().numpy(), threshold, ksize)
+                )
                 .unsqueeze(0)
                 .float()
             )

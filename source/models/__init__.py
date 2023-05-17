@@ -5,6 +5,7 @@ import torch
 
 import segmentation_models_pytorch as smp
 from models.multi_loss_model import MultiLossModel
+from models.sobel_model import SobelLossModel
 from models.specialized_networks import (
     border,
     concat,
@@ -95,6 +96,10 @@ class ModelFactory:
             model = Unet(in_c=in_channels)
             transforms = {"mean": (0, 0, 0), "std": (1, 1, 1)}
             type_desc = "unet"
+        elif model_type == "sobel_loss":
+            model = SobelLossModel(self.config)
+            transforms = model.load_and_transforms()
+            return model, transforms
         elif model_type == "multi_loss":
             model = MultiLossModel(self.config)
             transforms = model.load_and_transforms()
