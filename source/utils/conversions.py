@@ -154,7 +154,7 @@ def depth_to_sobel(depth, ksize, threshold):
     sobel_xy = cv2.convertScaleAbs(sobel_xy)
 
     sobel_combined = cv2.bitwise_or(sobel_x, sobel_y, sobel_xy)
-    return (sobel_combined > 20).astype(int)
+    return (sobel_combined > threshold).astype(int)
 
 
 def test():

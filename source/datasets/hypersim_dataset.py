@@ -188,7 +188,7 @@ class HyperSimDataset(Dataset):
             ksize = self.data_flags["parameters"]["sobel_ksize"]
             return_dict["sobel"] = (
                 torch.from_numpy(
-                    depth_to_sobel(depth_tensor.squeeze().numpy(), threshold, ksize)
+                    depth_to_sobel(depth_tensor.squeeze().numpy(), ksize, threshold)
                 )
                 .unsqueeze(0)
                 .float()
