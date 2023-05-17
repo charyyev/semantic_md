@@ -101,8 +101,14 @@ class ModelVisualizer(BaseVisualizer):
         self.axes[1, 1].set_title("difference")
         self.axes[1, 1].imshow(diff, cmap="viridis")
 
+        # square image
+        square_length = image.shape[0]
+        diff = (image.shape[1] - square_length) // 2
+        save_image = image[:, diff:-diff]
         self.current_downloads = {
-            "image": (image, False),
+            "image": (save_image, False),
             "depths": (np.nan_to_num(depths, copy=False, nan=0.5), True),
             "pred": (pred, True),
+            "segs": (img_segs_vir, False),
+            "img_segs_post": (img_segs_post, False),
         }

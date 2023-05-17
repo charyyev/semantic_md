@@ -2,6 +2,7 @@ import numpy as np
 import torch
 
 import cv2
+import matplotlib.pyplot as plt
 
 
 def semantic_encode(seg_tensor, num_encode):
@@ -137,17 +138,40 @@ def semantic_to_color(seg):
     return seg_img
 
 
-def test():
-    # create an example 3D tensor with seg tensor values
-    seg_tensor = torch.tensor(
-        [[[-1.0, 1.0, 2.0, 35.0], [1.0, 22.0, 10.0, 1.0], [15.0, 9.0, 22.0, -1.0]]]
-    )
+def _show(image):
+    plt.imshow(image)
+    plt.show()
 
-    print(seg_tensor)
-    print(seg_tensor.shape)
-    seg_encoded = semantic_encode(seg_tensor, 4)
-    print(seg_encoded)
-    print(seg_encoded.shape)
+
+def depth_to_sobel(depth, ksize, threshold):
+    sobel_x = cv2.Sobel(depth, cv2.CV_64F, 1, 0, ksize=ksize)
+    sobel_y = cv2.Sobel(depth, cv2.CV_64F, 0, 1, ksize=ksize)
+    sobel_xy = cv2.Sobel(depth, cv2.CV_64F, 1, 1, ksize=ksize)
+
+    # Convert back to uint8
+    sobel_x = cv2.convertScaleAbs(sobel_x)
+    sobel_y = cv2.convertScaleAbs(sobel_y)
+    sobel_xy = cv2.convertScaleAbs(sobel_xy)
+
+    sobel_combined = cv2.bitwise_or(sobel_x, sobel_y, sobel_xy)
+    return (sobel_combined > 20).astype(int)
+
+
+def test():
+    depth_path, image_path = (
+        "/mnt/hdd/HyperSim_Data_extracted/depth/ai_037_002/images/"
+        "scene_cam_00_geometry_hdf5/frame.0005.depth_meters.npy",
+        "/mnt/hdd/HyperSim_Data_extracted/image/ai_037_002/images/"
+        "scene_cam_00_final_hdf5/frame.0005.color.npy",
+    )
+    image = np.load(image_path)
+    plt.imshow(image)
+    plt.show()
+    depth_image = np.load(depth_path)
+    sobel = depth_to_sobel(depth_image)
+    plt.imshow(sobel)
+    plt.show()
+    print()
 
 
 if __name__ == "__main__":

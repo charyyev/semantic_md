@@ -24,7 +24,7 @@ class MultiVisualizer(BaseVisualizer):
         ) = hypersim_dataset.compute_transforms(transform_config, self.config)
 
         data_dir = self.config.get_subpath("data_location")
-        val_file_path = self.config.get_subpath("train_data")
+        val_file_path = self.config.get_subpath("val_data")
 
         self.dataset = hypersim_dataset.HyperSimDataset(
             data_dir=data_dir,
@@ -90,3 +90,15 @@ class MultiVisualizer(BaseVisualizer):
         diff = np.abs(depths - pred_depth)
         self.axes[1, 0].set_title("difference")
         self.axes[1, 0].imshow(diff, cmap="viridis")
+
+        # square image
+        square_length = image.shape[0]
+        diff = (image.shape[1] - square_length) // 2
+        save_image = image[:, diff:-diff]
+        self.current_downloads = {
+            "image": (save_image, False),
+            "depths": (np.nan_to_num(depths, copy=False, nan=0.5), True),
+            "pred_depth": (pred_depth, True),
+            "pred_semantic": (pred_semantic, True),
+            "segs": (img_segs_vir, False),
+        }

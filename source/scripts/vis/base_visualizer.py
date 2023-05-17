@@ -5,6 +5,7 @@ from abc import abstractmethod
 import numpy as np
 
 import matplotlib.pyplot as plt
+import utils.conversions
 from datasets import hypersim_dataset
 from matplotlib import cm
 from matplotlib import image as mpimg
@@ -13,8 +14,8 @@ from PIL import Image
 
 class BaseVisualizer:
     def __init__(self, config):
-        self.index = 0
         self.config = config
+        self.index = self.config["visualize"]["start"]
         self.current_downloads = {}
 
         config["device"] = "cpu"
@@ -41,7 +42,7 @@ class BaseVisualizer:
 
     @abstractmethod
     def _setup_window(self):
-        self.nrows, self.ncols = 2, 2
+        self.nrows, self.ncols = 2, 3
         figsize = 1920 / 100, 1080 / 100
         self.fig, self.axes = plt.subplots(
             nrows=self.nrows, ncols=self.ncols, figsize=figsize
@@ -73,20 +74,27 @@ class BaseVisualizer:
             np.clip(segs, 0, self.config["data_flags"]["parameters"]["seg_classes"])
         ).astype(int)
         img_segs_vir = cm.tab20b(img_segs)
-        self.axes[1, 0].set_title("semantic map")
-        self.axes[1, 0].imshow(img_segs_vir)
+        self.axes[0, 2].set_title("semantic map")
+        self.axes[0, 2].imshow(img_segs_vir)
 
         # seg post-processing
         segs_post = data["input_segs"].squeeze().numpy()
         if self.config["data_flags"]["type"] == "border":
             img_segs_post = cm.tab20b(segs_post)[:, :, :3]
-            self.axes[1, 1].set_title("border")
-            self.axes[1, 1].imshow(img_segs_post)
+            self.axes[1, 0].set_title("border")
+            self.axes[1, 0].imshow(img_segs_post)
         elif self.config["data_flags"]["type"] == "simplified_onehot":
             segs_post = (np.argmax(segs_post, axis=0).astype(int) / 3 * 255).astype(int)
             img_segs_post = cm.viridis(segs_post)
-            self.axes[1, 1].set_title("3-encoded")
-            self.axes[1, 1].imshow(img_segs_post)
+            self.axes[1, 0].set_title("3-encoded")
+            self.axes[1, 0].imshow(img_segs_post)
+
+        self.current_downloads = {
+            "image": (image, False),
+            "depths": (np.nan_to_num(depths, copy=False, nan=0.5), True),
+            "segs": (img_segs_vir, False),
+            "border": (img_segs_post, False),
+        }
 
     def update_image(self):
         self._remove_texts()
