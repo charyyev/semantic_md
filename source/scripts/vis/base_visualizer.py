@@ -7,12 +7,15 @@ import numpy as np
 import matplotlib.pyplot as plt
 from datasets import hypersim_dataset
 from matplotlib import cm
+from matplotlib import image as mpimg
+from PIL import Image
 
 
 class BaseVisualizer:
     def __init__(self, config):
         self.index = 0
         self.config = config
+        self.current_downloads = {}
 
         config["device"] = "cpu"
         self._init()
@@ -96,11 +99,19 @@ class BaseVisualizer:
 
     def _save_image(self):
         base_path = self.config.get_subpath("saved_figures")
-        os.makedirs(base_path, exist_ok=True)
-        file_name = os.path.join(
-            base_path, f"Image_{self.index}_{self.config['visualize']['model_path']}"
+        folder_name = os.path.basename(
+            os.path.dirname(self.config["visualize"]["model_path"])
         )
-        plt.savefig(file_name)
+        file_name = os.path.join(base_path, folder_name, f"Image_{self.index}")
+        os.makedirs(file_name, exist_ok=True)
+        for name, (arr, cmap) in self.current_downloads.items():
+            if arr is None:
+                continue
+            save_path = os.path.join(file_name, f"{name}.png")
+            if cmap:
+                mpimg.imsave(save_path, arr, cmap="viridis")
+            else:
+                mpimg.imsave(save_path, arr)
         self.axes[0, 0].text(
             0, -60, "Saved", bbox={"facecolor": "grey", "alpha": 0.5}, fontsize=20
         )

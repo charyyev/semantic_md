@@ -75,7 +75,7 @@ class Config:
         path_ending = os.path.normpath(subpath_dict[subpath])
         # return absolute path is that is specified, else concat with root dir
         if os.path.isabs(path_ending):
-            return base_path
+            return path_ending
         return os.path.join(base_path, path_ending)
 
     def build_subpath(self, subpath):

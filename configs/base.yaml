@@ -31,20 +31,20 @@ data_flags:
 
 hyperparameters:
     train:
-        batch_size: 16
+        batch_size: 32
         learning_rate: 0.001
-        epochs: 10
+        epochs: 15
         weight_decay: 0
-        save_every: 5
-        lambda_semantic: 1.
-        lambda_contours: 1.
+        save_every: 2
+        lambda_semantic: 0.1
+        lambda_contours: 0.1
         depth_loss_type: "L1"
         semantic_loss_type: "CE" #can be CE, Dice, FTL, Dice_CE, FTL_CE
         weight_lambda: 0.5
         weight_alpha: 0.8
         weight_gamma: 1.5
     val:
-        batch_size: 16
+        batch_size: 32
         val_every: 1
 
 transformations:
