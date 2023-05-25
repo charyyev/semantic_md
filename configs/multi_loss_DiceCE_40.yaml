@@ -3,7 +3,11 @@ extends: "euler.yaml"
 
 model_type: "multi_loss"
 note: "multiloss_lambda-0.1_sem40_DiceCE-0.5"
-wandb: true
+
+wandb:
+    wandb: true
+    project: "tests"
+    group: "mulit_loss"
 
 data_flags:
     # can be concat, onehot, border, semantic_convolution, simplified_onehote

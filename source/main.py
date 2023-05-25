@@ -6,6 +6,7 @@ from trainer.semantic_convolution_trainer import SemanticConvolutionTrainer
 from trainer.semantic_trainer import SemanticTrainer
 from trainer.sobel_trainer import SobelTrainer
 from trainer.triple_loss_trainer import TripleLossTrainer
+from trainer.contour_trainer import ContourTrainer
 from utils.configs import Config
 
 
@@ -32,6 +33,8 @@ def main():
         agent = MultiLossTrainer(config)
     elif config["model_type"] == "triple_loss":
         agent = TripleLossTrainer(config)
+    elif config["model_type"] == "contour_loss":
+        agent = ContourTrainer(config)
     else:
         agent = BaseTrainer(config)
     agent.train()

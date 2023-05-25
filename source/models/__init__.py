@@ -7,6 +7,7 @@ import segmentation_models_pytorch as smp
 from models.multi_loss_model import MultiLossModel
 from models.semantic_model import SemanticModel
 from models.sobel_model import SobelLossModel
+from models.contour_model import ContourModel
 from models.specialized_networks import (
     border,
     concat,
@@ -113,6 +114,9 @@ class ModelFactory:
             model = TripleLossModel(self.config)
             transforms = model.load_and_transforms()
             return model, transforms
+        elif model_type == "contour_loss":
+            model = ContourModel(self.config)
+            transforms = model.load_and_transforms()
         elif model_type in self.basic_models:
             model_func, kwargs, name, type_desc = self.basic_models[model_type]
 

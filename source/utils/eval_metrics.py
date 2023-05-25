@@ -4,10 +4,6 @@ import torch
 # from torchmetrics.classification import MulticlassJaccardIndex, MulticlassAccuracy
 import sklearn
 from sklearn.metrics import accuracy_score, confusion_matrix, jaccard_score
-from torchmetrics.functional.classification import (
-    multiclass_accuracy,
-    multiclass_jaccard_index,
-)
 from utils.configs import Config
 
 

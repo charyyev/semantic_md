@@ -143,7 +143,7 @@ def _show(image):
     plt.show()
 
 
-def depth_to_sobel(depth, ksize, threshold):
+def depth_to_sobel(depth, ksize=5, threshold=10):
     sobel_x = cv2.Sobel(depth, cv2.CV_64F, 1, 0, ksize=ksize)
     sobel_y = cv2.Sobel(depth, cv2.CV_64F, 0, 1, ksize=ksize)
     sobel_xy = cv2.Sobel(depth, cv2.CV_64F, 1, 1, ksize=ksize)
@@ -159,16 +159,20 @@ def depth_to_sobel(depth, ksize, threshold):
 
 def test():
     depth_path, image_path = (
-        "/mnt/hdd/HyperSim_Data_extracted/depth/ai_037_002/images/"
+        "/cluster/project/infk/courses/252-0579-00L/group22_semanticMD/"
+        "/HyperSim_Data_extracted/depth/ai_037_002/images/"
         "scene_cam_00_geometry_hdf5/frame.0005.depth_meters.npy",
-        "/mnt/hdd/HyperSim_Data_extracted/image/ai_037_002/images/"
+        "/cluster/project/infk/courses/252-0579-00L/group22_semanticMD/"
+        "/HyperSim_Data_extracted/image/ai_037_002/images/"
         "scene_cam_00_final_hdf5/frame.0005.color.npy",
     )
+    
     image = np.load(image_path)
     plt.imshow(image)
     plt.show()
     depth_image = np.load(depth_path)
     sobel = depth_to_sobel(depth_image)
+    print(np.unique(sobel))
     plt.imshow(sobel)
     plt.show()
     print()
