@@ -51,8 +51,8 @@ def depth_metrics(pred, target, epsilon, config):
 def seg_metrics(pred, target, epsilon, config):
     pred = torch.squeeze(torch.argmax(pred, dim=1))
     mask = torch.ne(target, -1)
-    target = torch.masked_select(target, mask).cpu().numpy()
-    pred = torch.masked_select(pred, mask).cpu().numpy()
+    target = torch.masked_select(target, mask).detach().cpu().numpy()
+    pred = torch.masked_select(pred, mask).detach().cpu().numpy()
     meanIoU = jaccard_score(target, pred, average="macro")
     pixelAcc = accuracy_score(target, pred)
     cm_acc = confusion_matrix(target, pred)

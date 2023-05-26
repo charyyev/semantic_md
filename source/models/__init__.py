@@ -117,6 +117,7 @@ class ModelFactory:
         elif model_type == "contour_loss":
             model = ContourModel(self.config)
             transforms = model.load_and_transforms()
+            return model, transforms
         elif model_type in self.basic_models:
             model_func, kwargs, name, type_desc = self.basic_models[model_type]
 

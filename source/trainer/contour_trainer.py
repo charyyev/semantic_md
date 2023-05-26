@@ -1,5 +1,6 @@
 import torch
 from torch import nn
+import numpy as np
 
 from trainer.base_trainer import BaseTrainer
 from utils.eval_metrics import border_metrics, depth_metrics
@@ -27,25 +28,22 @@ class ContourTrainer(BaseTrainer):
         input_image = data["input_image"].to(self.config["device"])
         depth = data["depths"].to(self.config["device"])
         contours = data["border"].to(self.config["device"])
-        contours = contours.squeeze().long()
+        contours = contours.squeeze(1).long()
 
         self.optimizer.zero_grad()
 
         pred_depth, pred_contours = self.model(input_image)
 
-        print(pred_depth.shape, pred_contours.shape)
-
-        pred_depth_to_numpy = pred_depth.squeeze().numpy()
-        print(pred_depth_to_numpy.shape, pred_depth_to_numpy.shape[0])
-        pred_sobel = torch.zeros_like(pred_depth_to_numpy)
-        for i in range(len(pred_depth_to_numpy.shape[0])):
+        pred_depth_to_numpy = pred_depth.squeeze(1).clone().detach().cpu().numpy()
+        pred_sobel = np.zeros_like(pred_depth_to_numpy)
+        for i in range(pred_depth_to_numpy.shape[0]):
             pred_sobel[i] = depth_to_sobel(pred_depth_to_numpy[i], 
                                            self.config["data_flags"]["parameters"]["sobel_ksize"], 
                                            self.config["data_flags"]["parameters"]["sobel_threshold"]
-                                           ).unsqueeze(1).float()
+                                           )
+        pred_sobel = torch.tensor(pred_sobel, requires_grad=True).float().cuda()
         pred_sobel[pred_sobel==0] = self.epsilon
         pred_sobel[pred_sobel==1] = 1 - self.epsilon
-        print(pred_sobel.shape, torch.unique(pred_sobel))
 
         # clamp values to >0
         loss_depth = self.loss_depth(pred_depth, depth)
@@ -54,12 +52,12 @@ class ContourTrainer(BaseTrainer):
         loss_contours = self.loss_contours(pred_contours, contours)
         loss_contours = self.nan_reduction(loss_contours)
 
-        loss_sobel = self.loss_sobel(pred_sobel, contours)
+        loss_sobel = self.loss_sobel(pred_sobel, contours.float())
         loss_sobel = self.nan_reduction(loss_sobel)
 
         lam_sobel = self.config["hyperparameters"]["train"]["lambda_sobel"]
         lam_contours = self.config["hyperparameters"]["train"]["lambda_contours"]
-        loss = loss_depth + lam_contours * contours + lam_sobel * loss_sobel
+        loss = loss_depth + lam_contours * loss_contours + lam_sobel * loss_sobel
 
         metrics_depth = depth_metrics(pred_depth, depth, self.epsilon, self.config)
         metrics_sobel = border_metrics(pred_contours, contours, self.epsilon, self.config)
@@ -67,6 +65,7 @@ class ContourTrainer(BaseTrainer):
         full_metrics = {
             "loss": loss.item(),
             "loss_depth": loss_depth.item(),
+            "loss_contour": loss_contours.item(),
             "loss_sobel": loss_sobel.item(),
             **metrics_depth,
             **metrics_sobel,
