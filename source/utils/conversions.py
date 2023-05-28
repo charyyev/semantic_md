@@ -166,12 +166,12 @@ def test():
         "/HyperSim_Data_extracted/image/ai_037_002/images/"
         "scene_cam_00_final_hdf5/frame.0005.color.npy",
     )
-    
+
     image = np.load(image_path)
     plt.imshow(image)
     plt.show()
     depth_image = np.load(depth_path)
-    sobel = depth_to_sobel(depth_image)
+    sobel = depth_to_sobel(depth_image, ksize=5, threshold=10)
     print(np.unique(sobel))
     plt.imshow(sobel)
     plt.show()

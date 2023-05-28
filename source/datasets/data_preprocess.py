@@ -1,16 +1,18 @@
 import os
 import sys
-sys.path.insert(0, '/media/ankitaghosh/Data/ETH/3DVision/semantic_md/')
+
+sys.path.insert(0, "/media/ankitaghosh/Data/ETH/3DVision/semantic_md/")
 import random
-import h5py
 
 import numpy as np
 import torch
 from torch.utils.data import Dataset
 from torchvision.transforms import transforms
-from tqdm import tqdm
 
 import cv2
+import h5py
+from tqdm import tqdm
+
 from source.utils.conversions import (
     semantic_norm,
     semantic_to_border,
@@ -137,21 +139,20 @@ class HyperSimDataset(Dataset):
             (self.image_paths, self.depth_paths, self.seg_paths)
         )
 
-        #Print images with infinity values, TODO: delete
+        # Print images with infinity values, TODO: delete
         printPath = []
         for image_path in tqdm(self.seg_paths):
             try:
-                with h5py.File(image_path, 'r') as image:
-                    image_np = np.array(image['dataset'])
+                with h5py.File(image_path, "r") as image:
+                    image_np = np.array(image["dataset"])
                     if np.isinf(image_np).any():
                         printPath.append(image_path)
             except:
-              print("Error: unable to open", image_path)
+                print("Error: unable to open", image_path)
         for i in range(0, len(printPath)):
             print(printPath[i])
 
         self.length = self.paths.shape[0]
-
 
 
 def compute_transforms(transform_config, config):
@@ -188,11 +189,11 @@ def compute_transforms(transform_config, config):
 
     return image_transform, depth_transform, seg_transform
 
-def test():
-    ROOT_DIR = '/media/ankitaghosh/Data/ETH/3DVision/HyperSim_trial/'
-    TXT_FILE = '/media/ankitaghosh/Data/ETH/3DVision/HyperSim_trial/newData.txt'
-    HyperSimDataset(data_dir=ROOT_DIR, file_path=TXT_FILE)
 
+def test():
+    ROOT_DIR = "/media/ankitaghosh/Data/ETH/3DVision/HyperSim_trial/"
+    TXT_FILE = "/media/ankitaghosh/Data/ETH/3DVision/HyperSim_trial/newData.txt"
+    HyperSimDataset(data_dir=ROOT_DIR, file_path=TXT_FILE)
 
 
 if __name__ == "__main__":

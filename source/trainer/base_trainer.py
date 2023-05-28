@@ -111,7 +111,7 @@ class BaseTrainer:
             self.model.parameters(), lr=learning_rate, weight_decay=weight_decay
         )
         self.scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(
-            self.optimizer, T_max=epochs, eta_min=0
+            self.optimizer, T_max=epochs, eta_min=1e-6
         )
 
     def step(self, data):

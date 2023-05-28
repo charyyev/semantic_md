@@ -1,11 +1,11 @@
+import numpy as np
 import torch
 from torch import nn
-import numpy as np
 
 from trainer.base_trainer import BaseTrainer
+from utils.conversions import depth_to_sobel
 from utils.eval_metrics import border_metrics, depth_metrics
 from utils.loss_functions import BerHuLoss
-from utils.conversions import depth_to_sobel
 
 
 class ContourTrainer(BaseTrainer):
@@ -37,13 +37,14 @@ class ContourTrainer(BaseTrainer):
         pred_depth_to_numpy = pred_depth.squeeze(1).clone().detach().cpu().numpy()
         pred_sobel = np.zeros_like(pred_depth_to_numpy)
         for i in range(pred_depth_to_numpy.shape[0]):
-            pred_sobel[i] = depth_to_sobel(pred_depth_to_numpy[i], 
-                                           self.config["data_flags"]["parameters"]["sobel_ksize"], 
-                                           self.config["data_flags"]["parameters"]["sobel_threshold"]
-                                           )
+            pred_sobel[i] = depth_to_sobel(
+                pred_depth_to_numpy[i],
+                self.config["data_flags"]["parameters"]["sobel_ksize"],
+                self.config["data_flags"]["parameters"]["sobel_threshold"],
+            )
         pred_sobel = torch.tensor(pred_sobel, requires_grad=True).float().cuda()
-        pred_sobel[pred_sobel==0] = self.epsilon
-        pred_sobel[pred_sobel==1] = 1 - self.epsilon
+        pred_sobel[pred_sobel == 0] = self.epsilon
+        pred_sobel[pred_sobel == 1] = 1 - self.epsilon
 
         # clamp values to >0
         loss_depth = self.loss_depth(pred_depth, depth)
@@ -60,7 +61,9 @@ class ContourTrainer(BaseTrainer):
         loss = loss_depth + lam_contours * loss_contours + lam_sobel * loss_sobel
 
         metrics_depth = depth_metrics(pred_depth, depth, self.epsilon, self.config)
-        metrics_sobel = border_metrics(pred_contours, contours, self.epsilon, self.config)
+        metrics_sobel = border_metrics(
+            pred_contours, contours, self.epsilon, self.config
+        )
 
         full_metrics = {
             "loss": loss.item(),

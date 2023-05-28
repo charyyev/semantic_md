@@ -1,12 +1,12 @@
 import argparse
 
 from trainer.base_trainer import BaseTrainer
+from trainer.contour_trainer import ContourTrainer
 from trainer.multi_loss_trainer import MultiLossTrainer
 from trainer.semantic_convolution_trainer import SemanticConvolutionTrainer
 from trainer.semantic_trainer import SemanticTrainer
 from trainer.sobel_trainer import SobelTrainer
 from trainer.triple_loss_trainer import TripleLossTrainer
-from trainer.contour_trainer import ContourTrainer
 from utils.configs import Config
 
 
