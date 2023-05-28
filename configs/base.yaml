@@ -2,15 +2,16 @@
 # See configs/template.yaml for an example how to create a deviating configuration file
 # By default the config/user.yaml configuration file is used.
 
-model_type: "semantic_baseline"
-note: "sobel_experiments"
+model_type: "multi_loss"
+super_model: "DeepLabV3"
+note: "deeplab_test"
 device: "cuda"
 
 wandb:
     wandb: true
     entity: "semantic_md"
-    project: "tests"
-    group: "sobel"
+    project: "deeplab_test"
+    group: null
 
 resume:
     resume_training: false

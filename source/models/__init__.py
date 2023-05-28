@@ -4,10 +4,10 @@ import pickle
 import torch
 
 import segmentation_models_pytorch as smp
+from models.contour_model import ContourModel
 from models.multi_loss_model import MultiLossModel
 from models.semantic_model import SemanticModel
 from models.sobel_model import SobelLossModel
-from models.contour_model import ContourModel
 from models.specialized_networks import (
     border,
     concat,
@@ -83,6 +83,16 @@ class ModelFactory:
                 },
                 "efficientnet_b4",
                 "timm_smp_eff",
+            ),
+            "deeplab_b4": (
+                smp.DeepLabV3,
+                {
+                    "encoder_name": "tu-efficientnet_b4",
+                    "encoder_weights": None,
+                    "activation": "sigmoid",
+                },
+                "efficientnet_b4",
+                "timm_smp_deeplab_eff",
             ),
         }
 

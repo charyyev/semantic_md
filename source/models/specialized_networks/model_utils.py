@@ -2,6 +2,11 @@ from collections.abc import Callable
 
 from torch import nn
 
+from segmentation_models_pytorch import encoders
+from segmentation_models_pytorch.base import SegmentationHead
+from segmentation_models_pytorch.decoders.deeplabv3.decoder import DeepLabV3Decoder
+from segmentation_models_pytorch.decoders.unet.decoder import UnetDecoder
+
 
 def extend_first_convolution(
     pretrained_model: nn.Module,
@@ -63,6 +68,15 @@ def efficientnet_set_conv1_func(pretrained_model, conv1):
     return pretrained_model
 
 
+def deeplab_get_conv1_func(pretrained_model):
+    return pretrained_model.encoder.model.conv_stem
+
+
+def deeplab_set_conv1_func(pretrained_model, conv1):
+    pretrained_model.encoder.model.conv_stem = conv1
+    return pretrained_model
+
+
 def unet_get_conv1_func(pretrained_model):
     return pretrained_model.encoder.model.conv1
 
@@ -77,7 +91,70 @@ def get_set_conv1_functions(type_desc):
         return resnet_get_conv1_func, resnet_set_conv1_func
     elif type_desc == "timm_smp_eff":
         return efficientnet_get_conv1_func, efficientnet_set_conv1_func
+    elif type_desc == "timm_smp_deeplab_eff":
+        return deeplab_get_conv1_func, deeplab_set_conv1_func
     elif type_desc == "unet":
         return unet_get_conv1_func, unet_set_conv1_func
     else:
         raise ValueError(f"Unknown type_desc '{type_desc}'")
+
+
+def get_decoder(model_description, **kwargs):
+    if model_description == "UNet":
+        return UnetDecoder(
+            encoder_channels=kwargs["encoder_channels"],
+            decoder_channels=(256, 128, 64, 32, 16),
+            n_blocks=5,
+            use_batchnorm=True,
+            center=False,
+            attention_type=None,
+        )
+    elif model_description == "DeepLabV3":
+        return DeepLabV3Decoder(
+            in_channels=kwargs["encoder_channels"][-1],
+            out_channels=256,
+            atrous_rates=(12, 24, 36),
+        )
+    else:
+        raise ValueError(f"Unknown model_description '{model_description}'")
+
+
+def get_encoder(model_description):
+    if model_description == "UNet":
+        return encoders.get_encoder(
+            name="tu-efficientnet_b4",
+            in_channels=3,
+            depth=5,
+            weights=None,
+        )
+    elif model_description == "DeepLabV3":
+        return encoders.get_encoder(
+            name="tu-efficientnet_b4",
+            in_channels=3,
+            depth=5,
+            weights=None,
+            output_stride=8,
+        )
+    else:
+        raise ValueError(f"Unknown model_description '{model_description}'")
+
+
+def get_head(model_description, **kwargs):
+    if model_description == "UNet":
+        return SegmentationHead(
+            in_channels=kwargs["in_channels"],
+            out_channels=kwargs["out_channels"],
+            activation=kwargs["activation"],
+            kernel_size=kwargs["kernel_size"],
+            upsampling=1,
+        )
+    elif model_description == "DeepLabV3":
+        return SegmentationHead(
+            in_channels=kwargs["in_channels"],
+            out_channels=kwargs["out_channels"],
+            activation=kwargs["activation"],
+            kernel_size=kwargs["kernel_size"],
+            upsampling=8,
+        )
+    else:
+        raise ValueError(f"Unknown model_description '{model_description}'")
