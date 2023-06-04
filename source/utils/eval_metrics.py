@@ -1,10 +1,7 @@
 import numpy as np
 import torch
 
-# from torchmetrics.classification import MulticlassJaccardIndex, MulticlassAccuracy
-import sklearn
 from sklearn.metrics import accuracy_score, confusion_matrix, jaccard_score
-from utils.configs import Config
 
 
 def unnormalize(inp, min_depth, max_depth):
@@ -13,6 +10,10 @@ def unnormalize(inp, min_depth, max_depth):
 
 
 def depth_metrics(pred, target, epsilon, config):
+    """
+    Calculates various depth metrics, namely:
+    rmse, relative absolute error, delta1-3, sq_rel, rmse_log, log10
+    """
     pred = torch.clamp(pred, min=epsilon, max=None)
     assert pred.shape == target.shape
     depth = config["transformations"]["depth_range"]
@@ -48,7 +49,10 @@ def depth_metrics(pred, target, epsilon, config):
     }
 
 
-def seg_metrics(pred, target, epsilon, config):
+def seg_metrics(pred, target, epsilon, _):
+    """
+    Computes segmentation metrics, mIOU, meanAccuracy, pixelAccuracy
+    """
     pred = torch.squeeze(torch.argmax(pred, dim=1))
     mask = torch.ne(target, -1)
     target = torch.masked_select(target, mask).detach().cpu().numpy()
@@ -61,7 +65,10 @@ def seg_metrics(pred, target, epsilon, config):
     return {"meanIoU": meanIoU, "meanAcc": meanAcc, "pixelAcc": pixelAcc}
 
 
-def contour_metrics(pred, target, epsilon, config):
+def contour_metrics(pred, target, epsilon, _):
+    """
+    Computes contour  metrics, accuracy, precision, recall, f1
+    """
     pred = torch.squeeze(torch.argmax(pred, dim=1))
     tp = ((pred == 1) & (target == 1)).sum().item()
     tn = ((pred == 0) & (target == 0)).sum().item()
@@ -84,24 +91,24 @@ def contour_metrics(pred, target, epsilon, config):
 def test():
     epsilon = 1e-4
     # create an example 3D tensor with predicted and true values
-    y_pred = torch.tensor(
-        [
-            [[1.2, 2.4], [3.6, -4.8]],
-            [[5.1, 3.2], [7.3, 8.4]],
-            [[9.5, 10.6], [11.7, -12.8]],
-        ]
-    )
-    y_pred = torch.clamp(y_pred, min=epsilon, max=None)
-
-    y_target = torch.tensor(
-        [
-            [[1.0, 2.0], [3.0, 4.0]],
-            [[5.0, 6.0], [7.0, 8.0]],
-            [[9.0, 10.0], [11.0, 12.0]],
-        ]
-    )
-    # print(y_pred)
-    # print(y_pred.size())
+    # y_pred = torch.tensor(
+    #     [
+    #         [[1.2, 2.4], [3.6, -4.8]],
+    #         [[5.1, 3.2], [7.3, 8.4]],
+    #         [[9.5, 10.6], [11.7, -12.8]],
+    #     ]
+    # )
+    # y_pred = torch.clamp(y_pred, min=epsilon, max=None)
+    #
+    # y_target = torch.tensor(
+    #     [
+    #         [[1.0, 2.0], [3.0, 4.0]],
+    #         [[5.0, 6.0], [7.0, 8.0]],
+    #         [[9.0, 10.0], [11.0, 12.0]],
+    #     ]
+    # )
+    # # print(y_pred)
+    # # print(y_pred.size())
 
     s_pred = torch.tensor(
         [
@@ -119,7 +126,7 @@ def test():
         ]
     )
 
-    metrics = seg_metrics(s_pred, s_target, epsilon)
+    metrics = seg_metrics(s_pred, s_target, epsilon, None)
     print(metrics)
 
 

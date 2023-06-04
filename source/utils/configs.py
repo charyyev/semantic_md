@@ -8,6 +8,7 @@ import yaml
 class Config:
     """
     Config class that merges base and personal config file.
+    Can read in config files recursively (as specified by the extends keyword)
     Has some useful functions for ease of use.
     """
 
@@ -42,19 +43,14 @@ class Config:
         self._add_additional_info()
 
     def _add_additional_info(self):
-        additions = {}
-
-        # git hash
-        # repo = git.Repo(search_parent_directories=True)
-        # sha = repo.head.object.hexsha
-        # additions["git_sha"] = sha
-
-        # current timestamp
-        additions["timestamp"] = self.timestamp
-
+        additions = {"timestamp": self.timestamp}
         self._add_metadata(additions)
 
     def _add_metadata(self, additions: dict):
+        """
+        adds certain metadata to the config for later reading (typically timestamp,
+        git hash, etc.)
+        """
         if "metadata" not in self._config:
             self._config["metadata"] = {}
 
@@ -68,6 +64,9 @@ class Config:
                 self._config["metadata"][k] = v
 
     def get_subpath(self, subpath):
+        """
+        Computes path relative to source directory path.
+        """
         subpath_dict = self._config["subpaths"]
         if subpath not in list(subpath_dict.keys()):
             raise ValueError(f"Subpath {subpath} not known.")
@@ -79,11 +78,17 @@ class Config:
         return os.path.join(base_path, path_ending)
 
     def build_subpath(self, subpath):
+        """
+        Computes path relative to source directory path.
+        """
         base_path = os.path.normpath(self._config["project_root_dir"])
         path_ending = os.path.normpath(subpath)
         return os.path.join(base_path, path_ending)
 
     def _replace_configs_in_note(self, match: re.Match):
+        """
+        Does the dynamic replacement
+        """
         text = match.group(1)
         pattern = r"\[(.+?)\]"
         matches = re.findall(pattern, text)
@@ -98,11 +103,19 @@ class Config:
         return f"{list(matches)[-1]}~~{current_config}"
 
     def _build_note(self):
+        """
+        Adaptive naming of runs if specified in config.
+        Example config[hyperparameters][train][batch_size] is replaced with
+        batch_size~~<batch_size> (e.g. batch_size~~32)
+        """
         text = self._config["note"]
         pattern = r"(config(?:\[[^\]]+\])+)"
         return re.sub(pattern, self._replace_configs_in_note, text)
 
     def get_name_stem(self):
+        """
+        Builds name stem for saving models with unified naming scheme.
+        """
         name = self._config["model_type"]
         note = self._build_note()
         name_stem = f"model_{name}_{note}___{self.timestamp}"
