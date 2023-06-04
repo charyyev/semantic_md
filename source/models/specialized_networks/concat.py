@@ -4,6 +4,10 @@ from models.specialized_networks import model_utils
 
 
 class ConcatModel(nn.Module):
+    """
+    Adds an additional input channel to receive semantic segmentation map
+    """
+
     def __init__(self, pretrained_model, get_func, set_func):
         super().__init__()
         self.model = model_utils.extend_first_convolution(

@@ -4,6 +4,10 @@ from models.specialized_networks import model_utils
 
 
 class SimplifiedOneHotModel(nn.Module):
+    """
+    Adds additional input channels to receive onehot encoded semantic classes
+    """
+
     def __init__(self, pretrained_model, get_func, set_func, num_encode):
         super().__init__()
         self.model = model_utils.extend_first_convolution(
