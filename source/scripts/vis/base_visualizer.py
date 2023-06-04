@@ -79,9 +79,9 @@ class BaseVisualizer:
 
         # seg post-processing
         segs_post = data["input_segs"].squeeze().numpy()
-        if self.config["data_flags"]["type"] == "border":
+        if self.config["data_flags"]["type"] == "contour":
             img_segs_post = cm.tab20b(segs_post)[:, :, :3]
-            self.axes[1, 0].set_title("border")
+            self.axes[1, 0].set_title("contour")
             self.axes[1, 0].imshow(img_segs_post)
         elif self.config["data_flags"]["type"] == "simplified_onehot":
             segs_post = (np.argmax(segs_post, axis=0).astype(int) / 3 * 255).astype(int)
@@ -93,7 +93,7 @@ class BaseVisualizer:
             "image": (image, False),
             "depths": (np.nan_to_num(depths, copy=False, nan=0.5), True),
             "segs": (img_segs_vir, False),
-            "border": (img_segs_post, False),
+            "contour": (img_segs_post, False),
         }
 
     def update_image(self):

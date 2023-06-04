@@ -3,7 +3,9 @@ from torch import nn
 from models.specialized_networks import model_utils
 
 
-class BorderModel(nn.Module):
+class ContourModel(nn.Module):
+    """ """
+
     def __init__(self, pretrained_model, get_func, set_func):
         super().__init__()
         self.model = model_utils.extend_first_convolution(

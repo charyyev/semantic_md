@@ -1,13 +1,13 @@
 from torch import nn
 
 from trainer.base_trainer import BaseTrainer
-from utils.eval_metrics import border_metrics, depth_metrics, seg_metrics
+from utils.eval_metrics import contour_metrics, depth_metrics, seg_metrics
 from utils.loss_functions import BerHuLoss, DiceLoss, FocalTverskyLoss
 
 
 class TripleLossTrainer(BaseTrainer):
     def __init__(self, config):
-        config["data_flags"]["return_types"]["border"] = True
+        config["data_flags"]["return_types"]["contour"] = True
         super().__init__(config)
 
     def build_model(self):
@@ -53,7 +53,7 @@ class TripleLossTrainer(BaseTrainer):
         depth = data["depths"].to(self.config["device"])
         semantic = data["original_seg"].to(self.config["device"])
         semantic = semantic.squeeze().long()
-        contours = data["border"].to(self.config["device"])
+        contours = data["contour"].to(self.config["device"])
         contours = contours.squeeze().long()
 
         self.optimizer.zero_grad()
@@ -92,7 +92,7 @@ class TripleLossTrainer(BaseTrainer):
 
         metrics_depth = depth_metrics(pred_depth, depth, self.epsilon, self.config)
         metrics_seg = seg_metrics(pred_semantic, semantic, self.epsilon, self.config)
-        metrics_contour = border_metrics(
+        metrics_contour = contour_metrics(
             pred_contours, contours, self.epsilon, self.config
         )
 

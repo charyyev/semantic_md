@@ -74,7 +74,7 @@ def semantic_norm(seg_tensor, num_classes):
     return seg_tensor_norm
 
 
-def semantic_to_border(seg):
+def semantic_to_contour(seg):
     kernel = np.ones((3, 3), np.uint8)
     erosion = cv2.erode(seg, kernel, iterations=1)
     dilation = cv2.dilate(seg, kernel, iterations=1)

@@ -9,8 +9,8 @@ from models.multi_loss_model import MultiLossModel
 from models.semantic_model import SemanticModel
 from models.sobel_model import SobelLossModel
 from models.specialized_networks import (
-    border,
     concat,
+    contour,
     model_utils,
     onehot,
     semantic_convolution,
@@ -168,8 +168,8 @@ class ModelFactory:
             )
         elif data_flags["type"] == "concat":
             model = concat.ConcatModel(model, get_func, set_func)
-        elif data_flags["type"] == "border":
-            model = border.BorderModel(model, get_func, set_func)
+        elif data_flags["type"] == "contour":
+            model = contour.ContourModel(model, get_func, set_func)
         elif data_flags["type"] == "simplified_onehot":
             model = simplified_onehot.SimplifiedOneHotModel(
                 model,

@@ -47,7 +47,7 @@ subpaths:
 #
 data_flags:
     # type specifies the overall architecture (used in category *2*)
-    # can be concat, border, semantic_convolution, simplified_onehot
+    # can be concat, contour, semantic_convolution, simplified_onehot
     # do not specify when using category 3 models
     type: null
     # segmentation classes are specified as the top classes (sorted by prevalence in the
@@ -62,7 +62,7 @@ data_flags:
         sobel_ksize: 5
     # specify return_type get
     return_types:
-        border: false # true when type == border
+        contour: false # true when type == contour
         simplified_onehot: false # true when type == simplified_onehot
         sobel: false # true when running sobel model
 

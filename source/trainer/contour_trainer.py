@@ -4,13 +4,13 @@ from torch import nn
 
 from trainer.base_trainer import BaseTrainer
 from utils.conversions import depth_to_sobel
-from utils.eval_metrics import border_metrics, depth_metrics
+from utils.eval_metrics import contour_metrics, depth_metrics
 from utils.loss_functions import BerHuLoss
 
 
 class ContourTrainer(BaseTrainer):
     def __init__(self, config):
-        config["data_flags"]["return_types"]["border"] = True
+        config["data_flags"]["return_types"]["contour"] = True
         super().__init__(config)
 
     def build_model(self):
@@ -27,7 +27,7 @@ class ContourTrainer(BaseTrainer):
     def step(self, data):
         input_image = data["input_image"].to(self.config["device"])
         depth = data["depths"].to(self.config["device"])
-        contours = data["border"].to(self.config["device"])
+        contours = data["contour"].to(self.config["device"])
         contours = contours.squeeze(1).long()
 
         self.optimizer.zero_grad()
@@ -61,7 +61,7 @@ class ContourTrainer(BaseTrainer):
         loss = loss_depth + lam_contours * loss_contours + lam_sobel * loss_sobel
 
         metrics_depth = depth_metrics(pred_depth, depth, self.epsilon, self.config)
-        metrics_sobel = border_metrics(
+        metrics_sobel = contour_metrics(
             pred_contours, contours, self.epsilon, self.config
         )
 

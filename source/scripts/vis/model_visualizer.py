@@ -75,9 +75,9 @@ class ModelVisualizer(BaseVisualizer):
         # seg post-processing
         segs_post = data["input_segs"].squeeze().numpy()
         img_segs_post = None
-        if self.config["data_flags"]["type"] == "border":
+        if self.config["data_flags"]["type"] == "contour":
             img_segs_post = cm.tab20b(segs_post)[:, :, :3]
-            self.axes[0, 3].set_title("border")
+            self.axes[0, 3].set_title("contour")
             self.axes[0, 3].imshow(img_segs_post)
         elif self.config["data_flags"]["type"] == "simplified_onehot":
             segs_post = (np.argmax(segs_post, axis=0).astype(int) / 3 * 255).astype(int)
