@@ -22,72 +22,72 @@ If you follow the config setup as specified in the template, this option needs n
 For more specific details on each file and the associated code, please check the files for comments.
 
 <pre>
-project_root_dir/                                   <--- root directory of the project
-├── source/                                         <--- all code stored here
+project_root_dir/ 				<--- root directory of the project
+├── source/ 					<--- all code stored here
 │   ├── datasets/
-│   │   ├── hypersim_dataset.py                    <--- contains the dataset implmentation for the HyperSim dataset
+│   │   ├── hypersim_dataset.py 		<--- contains the dataset implmentation for the HyperSim dataset
 │   │   └── ...
 │   ├── models/
-│   │   ├── __init__.py                             <--- contains the model_factory which is responsible for building a model
-│   │   ├── template_model.py                       <--- template for how a model should look like
-│   │   ├── specialized_networks/                   <--- use this folder for special changes to the network
-│   │   │   ├── special_example.py       			<--- example for such a network change
+│   │   ├── __init__.py 			<--- contains the model_factory which is responsible for building a model
+│   │   ├── template_model.py 			<--- template for how a model should look like
+│   │   ├── specialized_networks/ 		<--- use this folder for special changes to the network
+│   │   │   ├── special_example.py 		<--- example for such a network change
 │   │   │   └── ...
-│   ├── scripts/                                    <--- contains scripts to automate certain tasks, mostly not relevant to the final execution of the project
-│   │   ├── vis/                                    <--- scripts for running visualization
-│   │   │   ├── main_vis.py                         <--- run this script to run visualization
-│   │   │   └── x_visualizer.py                     <--- various implementations of the visualizer class; for more info check comments in file
+│   ├── scripts/ 				<--- contains scripts to automate certain tasks, mostly not relevant to the final execution of the project
+│   │   ├── vis/ 				<--- scripts for running visualization
+│   │   │   ├── main_vis.py 			<--- run this script to run visualization
+│   │   │   └── x_visualizer.py 		<--- various implementations of the visualizer class; for more info check comments in file
 │   │   │   └── ...
-│   ├── trainer.py                                  <--- contains the trainer class implementations
-│   │   ├── base_trainer.py                        	<--- base class implementation of the trainer class, can be extended 
-│   │   ├── multi_loss_trainer.py                   <--- one such extension of the base trainer; takes care of training multi_loss (2 heads) model
+│   ├── trainer.py 				<--- contains the trainer class implementations
+│   │   ├── base_trainer.py 			<--- base class implementation of the trainer class, can be extended 
+│   │   ├── multi_loss_trainer.py 		<--- one such extension of the base trainer; takes care of training multi_loss (2 heads) model
 │   │   └── ...
 │   ├── utils/
-│   │   ├── configs.py                              <--- ease of use class for accessing config
-│   │   ├── conversions.py                          <--- implements methods of converting semantic map as seen in the paper
-│   │   ├── eval_metrics.py                         <--- additional metrics to keep track of
-│   │   ├── logs.py                                 <--- project-specific logging configuration
-│   │   ├── loss_functions.py                       <--- implementation of additional loss functions
-│   │   ├── transforms.py                           <--- various transformations of image data
+│   │   ├── configs.py 				<--- ease of use class for accessing config
+│   │   ├── conversions.py 			<--- implements methods of converting semantic map as seen in the paper
+│   │   ├── eval_metrics.py 			<--- additional metrics to keep track of
+│   │   ├── logs.py 				<--- project-specific logging configuration
+│   │   ├── loss_functions.py 			<--- implementation of additional loss functions
+│   │   ├── transforms.py 			<--- various transformations of image data
 │   │   └── ...
-│   ├── main.py                                     <--- contains the main method
+│   ├── main.py 				<--- contains the main method
 │   └── ...
 │
 ├── configs/
-│   ├── base.yaml                                   <--- base config file used for changing the actual project
-│   ├── template.yaml                               <--- template config for setting up user.yaml
-│   └── user.yaml                                   <--- personal config file to set up config for this specific workspace
+│   ├── base.yaml 				<--- base config file used for changing the actual project
+│   ├── template.yaml 				<--- template config for setting up user.yaml
+│   └── user.yaml 				<--- personal config file to set up config for this specific workspace
 │
-├── logs/                                           <--- contains logs
+├── logs/ 					<--- contains logs
 │   └── ...
 │
-├── data/                                           <--- contains any used datasets
+├── data/ 					<--- contains any used datasets
 │   └── ...
 │
-├── pretrained_weights/                             <--- contains model_weights
-│   ├── template_weights/                           <--- template configuration
-│   │   ├── weights.pth                             <--- actual weights for the model
-│   │   └── weights_object.pickle              		<--- metadata (config used for pretraining)
+├── pretrained_weights/ 			<--- contains model_weights
+│   ├── template_weights/ 			<--- template configuration
+│   │   ├── weights.pth 			<--- actual weights for the model
+│   │   └── weights_object.pickle 		<--- metadata (config used for pretraining)
 │
-├── output/                                         <--- any model output
+├── output/ 					<--- any model output
 │   ├── template_output/
 │   │   ├── best_checkpoints/
-│   │   │   └── ...									<--- explanation of checkpoint structure under checkpoints/
+│   │   │   └── ... 				<--- explanation of checkpoint structure under checkpoints/
 │   │   ├── checkpoints/
-│   │   │   ├── epoch_x/                         	<--- model weights at checkpoint
-│   │   │   │   ├── optimizer.pth               	<--- optimizer state at checkpoint
-│   │   │   │   └── weights.pth                 	<--- model weights at checkpoint
-│   │   └── tensorboard/                            <--- tensorboard directory
-│   │   └── wandb/                                  <--- wandb directory
+│   │   │   ├── epoch_x/ 			<--- model weights at checkpoint
+│   │   │   │   ├── optimizer.pth 		<--- optimizer state at checkpoint
+│   │   │   │   └── weights.pth 		<--- model weights at checkpoint
+│   │   └── tensorboard/  			<--- tensorboard directory
+│   │   └── wandb/ 				<--- wandb directory
 │
 ├── .github/                                        
-│   ├── workflows/                                  <--- github actions 
+│   ├── workflows/ 				<--- github actions 
 │   │   ├── black.yml
 │   │   ├── isort.yml
 │   │   ├── pylint.yml
 │   │   └── ...
 │
-├── .gitignore                                      <--- global .gitignore
+├── .gitignore 					<--- global .gitignore
 ├── requirements.txt
 └── README.md
 </pre>
