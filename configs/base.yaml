@@ -107,6 +107,8 @@ pretrained_names:
     weights: "weights.pth"
     pretrained_metadata: "weights_object.pickle"
 
+# please use this to specify which model you are visualizing (do not have to change
+# the other parameters)
 visualize:
     model_type: "triple_loss"
     model_path: ""
