@@ -2,9 +2,9 @@
 # See configs/template.yaml for an example how to create a deviating configuration file
 # By default the config/user.yaml configuration file is used.
 
-model_type: "multi_loss"
+model_type: "semantic_baseline"
 super_model: "DeepLabV3"
-note: "deeplab_test"
+note: "deeplab_semantic_baseline_DiceCE"
 device: "cuda"
 
 wandb:
@@ -50,10 +50,10 @@ hyperparameters:
         # depth parameters
         depth_loss_type: "L1"
         # semantic
-        lambda_semantic: 0.5
-        semantic_loss_type: "CE" #can be CE, Dice, FTL, Dice_CE, FTL_CE
+        lambda_semantic: 0.1
+        semantic_loss_type: "Dice_CE" #can be CE, Dice, FTL, Dice_CE, FTL_CE
         # contours
-        lambda_contours: 0.5
+        lambda_contours: 0.1
         # sobel
         lambda_sobel: 1
         # other
