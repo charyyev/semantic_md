@@ -11,6 +11,10 @@ from segmentation_models_pytorch.encoders import get_encoder
 
 
 class SemanticModel(nn.Module):
+    """
+    Model to check semantic baseline (predict only semantic segmentation, no depth)
+    """
+
     def __init__(self, config):
         super().__init__()
         self.config = config

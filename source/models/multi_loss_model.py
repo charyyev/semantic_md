@@ -4,15 +4,14 @@ import pickle
 import torch
 from torch import nn
 
-import segmentation_models_pytorch as smp
 from models.specialized_networks import model_utils
-from segmentation_models_pytorch.base import SegmentationHead
-
-smp.DeepLabV3
-smp.Unet
 
 
 class MultiLossModel(nn.Module):
+    """
+    Model used for 2head prediction.
+    """
+
     def __init__(self, config):
         super().__init__()
         self.config = config
@@ -45,10 +44,7 @@ class MultiLossModel(nn.Module):
         )
 
     def forward(self, x):
-        # self.test(x)
         x = self.encoder(x)
-        # if not isinstance(x, list):
-        #     x = (x,)
         pred_depth = self.decoder_depth(*x)
         pred_depth = self.head_depth(pred_depth)
         pred_semantic = self.decoder_semantic(*x)
@@ -73,6 +69,5 @@ class MultiLossModel(nn.Module):
         )
         weights_dict = torch.load(weights_path)
         self.encoder.model.load_state_dict(weights_dict, strict=False)
-        # self.encoder.load_state_dict(weights_dict, strict=False)
 
         return transforms

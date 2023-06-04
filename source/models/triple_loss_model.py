@@ -11,6 +11,10 @@ from segmentation_models_pytorch.encoders import get_encoder
 
 
 class TripleLossModel(nn.Module):
+    """
+    Model with 3 heads from the paper.
+    """
+
     def __init__(self, config):
         super().__init__()
         self.config = config
