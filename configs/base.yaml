@@ -13,7 +13,7 @@
 
 # Finally we have "soble_loss", "contour_loss" and "semantic_baseline" used in ablation
 # studies
-model_type: "semantic_baseline"
+model_type: "contour_loss"
 # specifies the type of encoding-decoding architecture used in multi_ and triple_loss
 # can be either "DeepLabV3"
 super_model: "DeepLabV3"
@@ -62,7 +62,7 @@ data_flags:
         sobel_ksize: 5
     # specify return_type get
     return_types:
-        contour: false # true when type == contour
+        contour: true # true when type == contour
         simplified_onehot: false # true when type == simplified_onehot
         sobel: false # true when running sobel model
 

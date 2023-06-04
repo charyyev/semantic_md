@@ -11,7 +11,7 @@ from utils.conversions import (
     depth_to_sobel,
     semantic_encode,
     semantic_norm,
-    semantic_to_border,
+    semantic_to_contour,
     simplified_encode,
 )
 
@@ -168,9 +168,9 @@ class HyperSimDataset(Dataset):
         }
 
         # return data based on data flags set in config
-        if self.data_flags["return_types"]["border"]:
-            return_dict["border"] = (
-                torch.from_numpy(semantic_to_border(seg_tensor.squeeze().numpy()))
+        if self.data_flags["return_types"]["contour"]:
+            return_dict["contour"] = (
+                torch.from_numpy(semantic_to_contour(seg_tensor.squeeze().numpy()))
                 .unsqueeze(0)
                 .float()
             )
@@ -192,9 +192,9 @@ class HyperSimDataset(Dataset):
             )
 
         # then specify input_image based on that option
-        if self.data_flags["type"] == "border":
+        if self.data_flags["type"] == "contour":
             return_dict["input_image"] = torch.cat(
-                (image_tensor, return_dict["border"]), dim=0
+                (image_tensor, return_dict["contour"]), dim=0
             )
         elif self.data_flags["type"] == "simplified_onehot":
             return_dict["input_image"] = torch.cat(

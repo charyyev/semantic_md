@@ -14,6 +14,6 @@ class ContourModel(nn.Module):
             pretrained_model, 1, get_func, set_func
         )
 
-    def forward(self, image_border):
-        out = self.model(image_border)
+    def forward(self, image_contour):
+        out = self.model(image_contour)
         return out
