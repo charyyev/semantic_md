@@ -70,9 +70,11 @@ class HyperSimDataset(Dataset):
         """
         self.random_seed = 0
         self.data_dir = data_dir
+        # transform functions for the respective data
         self.image_transform = image_transform
         self.depth_transform = depth_transform
         self.seg_transform = seg_transform
+        # used to specify which data to return and how (shape, encoding, etc.)
         self.data_flags = data_flags
 
         if self.image_transform is None:
@@ -94,6 +96,7 @@ class HyperSimDataset(Dataset):
 
         if file_path == "":
             print("File path not given for loading data...")
+        # read in all data
         with open(file_path, "r", encoding="UTF-8") as file:
             for line in file:
                 imgPath = os.path.join(self.data_dir, line.replace("\n", ""))
@@ -132,13 +135,6 @@ class HyperSimDataset(Dataset):
             (self.image_paths, self.depth_paths, self.seg_paths)
         )
 
-        # Print images with infinity values, TODO: delete
-        # for image_path in self.image_paths:
-        #   with h5py.File(image_path, 'r') as image:
-        #        image_np = np.array(image['dataset'])
-        #        if np.isinf(image_np).any():
-        #            print(image_path)
-
         self.length = self.paths.shape[0]
 
     def __len__(self):
@@ -152,11 +148,11 @@ class HyperSimDataset(Dataset):
         depth_np = np.load(current_depth_path)
         seg_np = np.load(current_seg_path)
 
+        # compute transforms pn data
         original_image_tensor = transforms.ToTensor()(image_np)
         image_tensor = self.image_transform(image_np).float()
         depth_tensor = self.depth_transform(depth_np).float()
         seg_tensor = self.seg_transform(seg_np).float()
-        # original_seg_tensor = seg_tensor
         original_seg_tensor = semantic_encode(
             seg_tensor, self.data_flags["parameters"]["seg_classes"]
         )
@@ -171,11 +167,7 @@ class HyperSimDataset(Dataset):
             "original_seg": original_seg_tensor,
         }
 
-        # return_types specifies the data variations we need to compute
-        # data_flags specifies how the input_image should be computed
-
-        # we first compute all needed return types
-
+        # return data based on data flags set in config
         if self.data_flags["return_types"]["border"]:
             return_dict["border"] = (
                 torch.from_numpy(semantic_to_border(seg_tensor.squeeze().numpy()))
@@ -218,6 +210,12 @@ class HyperSimDataset(Dataset):
 
 
 def compute_transforms(transform_config, config):
+    """
+    We want to transform our data in certain manners.
+    One important aspect is that for normalizing the image, we use the same mean, std
+    as the pretrained model.
+    As the transformations might differ based on the dataset, we specifiy them here.
+    """
     tcfg = transform_config
     mean, std = tcfg["mean"], tcfg["std"]
     depth = config["transformations"]["depth_range"]
