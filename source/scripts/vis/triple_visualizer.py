@@ -11,7 +11,7 @@ from scripts.vis.base_visualizer import BaseVisualizer
 class TripleVisualizer(BaseVisualizer):
     def _setup_data(self):
         self.config["model_type"] = self.config["visualize"]["model_type"]
-        self.config["data_flags"]["return_types"]["border"] = True
+        self.config["data_flags"]["return_types"]["contour"] = True
 
         self.model, transform_config = ModelFactory().get_model(
             self.config, in_channels=3
@@ -63,7 +63,9 @@ class TripleVisualizer(BaseVisualizer):
         # Depths
         depths = data["depths"].squeeze().numpy()
         self.axes[0, 1].set_title("depth map")
-        self.axes[0, 1].imshow(depths, cmap="viridis")
+        self.axes[0, 1].imshow(
+            depths, cmap="viridis", vmin=self.min_depth, vmax=self.max_depth
+        )
 
         # segmentation
         segs = data["original_seg"].squeeze().numpy()
@@ -74,10 +76,10 @@ class TripleVisualizer(BaseVisualizer):
         self.axes[0, 2].set_title("semantic map")
         self.axes[0, 2].imshow(img_segs_vir)
 
-        # border
-        border = data["border"].squeeze().numpy()
-        img_segs_post = cm.tab20b(border)[:, :, :3]
-        self.axes[0, 3].set_title("border")
+        # contour
+        contour = data["contour"].squeeze().numpy()
+        img_segs_post = cm.tab20b(contour)[:, :, :3]
+        self.axes[0, 3].set_title("contour")
         self.axes[0, 3].imshow(img_segs_post)
 
         # Prediction
@@ -85,7 +87,9 @@ class TripleVisualizer(BaseVisualizer):
         pred_depth, pred_semantic, pred_contour = self.model(input_)
         pred_depth = pred_depth.detach().numpy().squeeze()
         self.axes[1, 1].set_title("prediction depth")
-        self.axes[1, 1].imshow(pred_depth, cmap="viridis")
+        self.axes[1, 1].imshow(
+            pred_depth, cmap="viridis", vmin=self.min_depth, vmax=self.max_depth
+        )
 
         pred_semantic = torch.argmax(pred_semantic, dim=1)
         pred_semantic = pred_semantic.detach().numpy().squeeze()
@@ -101,7 +105,9 @@ class TripleVisualizer(BaseVisualizer):
         # Diff prediction ground truth
         diff = np.abs(depths - pred_depth)
         self.axes[1, 0].set_title("difference")
-        self.axes[1, 0].imshow(diff, cmap="viridis")
+        self.axes[1, 0].imshow(
+            diff, cmap="viridis", vmin=self.min_depth, vmax=self.max_depth
+        )
 
         # square image
         square_length = image.shape[0]

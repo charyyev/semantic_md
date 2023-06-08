@@ -3,6 +3,10 @@ from torch import nn
 
 
 class DownBlock(nn.Module):
+    """
+    Normal UNet. Not used in the paper
+    """
+
     def __init__(self, in_c, out_c, kernel_size=3, padding="same", stride=1):
         super().__init__()
         self.batch_norm = nn.BatchNorm2d(in_c)

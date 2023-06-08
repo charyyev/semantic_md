@@ -15,7 +15,7 @@ def simplified_encode(seg_tensor, num_encode):
     """
     Semantic labels are 1-40(inclusive), no 0 present, -1 means unlabeled: https://github.com/apple/ml-hypersim/issues/12
     Semantic labels: https://github.com/apple/ml-hypersim/blob/main/code/cpp/tools/scene_annotation_tool/semantic_label_descs.csv
-    seg_class_order is the order of relevance of the segmentation classes
+    seg_class_order is the order of prevalence of the segmentation classes
     """
     seg_class_order = [
         1,
@@ -67,14 +67,17 @@ def simplified_encode(seg_tensor, num_encode):
 
 
 def semantic_norm(seg_tensor, num_classes):
-    """-1 first clipped to 0, 1-40 normalized by dividing by 40 to bring the entire tensor values in a 0-1 scale"""
+    """
+    -1 first clipped to 0, 1-40 normalized by dividing by 40 to bring the entire tensor
+    values in a 0-1 scale
+    """
 
     seg_tensor = torch.clip(seg_tensor, min=0, max=None)
     seg_tensor_norm = seg_tensor / num_classes
     return seg_tensor_norm
 
 
-def semantic_to_border(seg):
+def semantic_to_contour(seg):
     kernel = np.ones((3, 3), np.uint8)
     erosion = cv2.erode(seg, kernel, iterations=1)
     dilation = cv2.dilate(seg, kernel, iterations=1)
@@ -86,6 +89,9 @@ def semantic_to_border(seg):
 
 
 def semantic_to_color(seg):
+    """
+    converts classes to static colors for drawing.
+    """
     color_map = [
         [0, 0, 0],
         [0, 0, 64],
@@ -144,6 +150,9 @@ def _show(image):
 
 
 def depth_to_sobel(depth, ksize=5, threshold=10):
+    """
+    Extracts edges in depth based on sobel filter.
+    """
     sobel_x = cv2.Sobel(depth, cv2.CV_64F, 1, 0, ksize=ksize)
     sobel_y = cv2.Sobel(depth, cv2.CV_64F, 0, 1, ksize=ksize)
     sobel_xy = cv2.Sobel(depth, cv2.CV_64F, 1, 1, ksize=ksize)

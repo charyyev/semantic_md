@@ -9,8 +9,8 @@ from models.multi_loss_model import MultiLossModel
 from models.semantic_model import SemanticModel
 from models.sobel_model import SobelLossModel
 from models.specialized_networks import (
-    border,
     concat,
+    contour,
     model_utils,
     onehot,
     semantic_convolution,
@@ -108,6 +108,7 @@ class ModelFactory:
             model = Unet(in_c=in_channels)
             transforms = {"mean": (0, 0, 0), "std": (1, 1, 1)}
             type_desc = "unet"
+        # for category 3 and ablation models, each model has its now class (see models/)
         elif model_type == "semantic_baseline":
             model = SemanticModel(self.config)
             transforms = model.load_and_transforms()
@@ -129,15 +130,22 @@ class ModelFactory:
             transforms = model.load_and_transforms()
             return model, transforms
         elif model_type in self.basic_models:
+            # for category 1 and 2 models, we lead the model and let the respective
+            # specialized network class do its job
             model_func, kwargs, name, type_desc = self.basic_models[model_type]
 
-            # if it is a smp model with timm encoder, it can only handle pretrained weights with 3 input channels
-            # therefore we have to manually extend the input_channels via the below function
-            if type_desc in {"timm_smp_res", "timm_smp_eff"} and in_channels > 3:
+            # if it is a smp model with timm encoder, it can only handle pretrained
+            # weights with 3 input channels therefore we have to manually extend the
+            # input_channels via the below function
+            if (
+                type_desc in {"timm_smp_res", "timm_smp_eff", "timm_smp_deeplab_eff"}
+                and in_channels > 3
+            ):
                 model = model_func(**kwargs, in_channels=3, classes=1)
             else:
                 model = model_func(**kwargs, in_channels=in_channels, classes=1)
 
+            # load encoder with pretrained weights and get associated metadata
             metadata_path = os.path.join(
                 pretrained_weights_path, name, "weights_object.pickle"
             )
@@ -145,12 +153,13 @@ class ModelFactory:
                 transforms = pickle.load(file)
             weights_path = os.path.join(pretrained_weights_path, name, "weights.pth")
             weights_dict = torch.load(weights_path)
-            # we have additional weights in the saved weights (for classification and stuff), so we do strict = False
+            # we have additional weights in the saved weights (for classification
+            # and stuff), so we do strict = False
             model.encoder.model.load_state_dict(weights_dict, strict=False)
 
-            # if it is a smp model with timm encoder, it can only handle pretrained weights with 3 input channels
-            # therefore we have to manually extend the input_channels via the below function
-            # rarely used practice
+            # if it is a smp model with timm encoder, it can only handle pretrained
+            # weights with 3 input channels therefore we have to manually extend the
+            # input_channels via the below function
             if type_desc in {"timm_smp_res", "timm_smp_eff"} and in_channels > 3:
                 get_func, set_func = model_utils.get_set_conv1_functions(type_desc)
                 add_out_channels = in_channels - 3
@@ -160,6 +169,8 @@ class ModelFactory:
         else:
             raise ValueError(f"Unknown model_type {model_type}")
 
+        # here we let the specialized network models to their jobs of extending the
+        # networks based on the data flags
         get_func, set_func = model_utils.get_set_conv1_functions(type_desc)
         data_flags = config["data_flags"]
         if data_flags["type"] == "semantic_convolution":
@@ -168,8 +179,8 @@ class ModelFactory:
             )
         elif data_flags["type"] == "concat":
             model = concat.ConcatModel(model, get_func, set_func)
-        elif data_flags["type"] == "border":
-            model = border.BorderModel(model, get_func, set_func)
+        elif data_flags["type"] == "contour":
+            model = contour.ContourModel(model, get_func, set_func)
         elif data_flags["type"] == "simplified_onehot":
             model = simplified_onehot.SimplifiedOneHotModel(
                 model,

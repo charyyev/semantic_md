@@ -11,6 +11,11 @@ from segmentation_models_pytorch.encoders import get_encoder
 
 
 class ContourModel(nn.Module):
+    """
+    This model is a variation on multi_loss that predicts contours instead of semantic
+    segmentation maps.
+    """
+
     def __init__(self, config):
         super().__init__()
         self.config = config

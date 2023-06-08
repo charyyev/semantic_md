@@ -50,6 +50,7 @@ def extend_first_convolution(
     return pretrained_model
 
 
+# The below function return getter and setter methods for the respective models
 def resnet_get_conv1_func(pretrained_model):
     return pretrained_model.encoder.model.conv1
 
@@ -87,6 +88,9 @@ def unet_set_conv1_func(pretrained_model, conv1):
 
 
 def get_set_conv1_functions(type_desc):
+    """
+    Return the getter and setter function for the specified model type.
+    """
     if type_desc == "timm_smp_res":
         return resnet_get_conv1_func, resnet_set_conv1_func
     elif type_desc == "timm_smp_eff":
@@ -100,6 +104,9 @@ def get_set_conv1_functions(type_desc):
 
 
 def get_decoder(model_description, **kwargs):
+    """
+    Use this function to get a decoder depending on the super_model (category 3)
+    """
     if model_description == "UNet":
         return UnetDecoder(
             encoder_channels=kwargs["encoder_channels"],
@@ -120,6 +127,9 @@ def get_decoder(model_description, **kwargs):
 
 
 def get_encoder(model_description):
+    """
+    Use this function to get a encoder depending on the super_model (category 3)
+    """
     if model_description == "UNet":
         return encoders.get_encoder(
             name="tu-efficientnet_b4",
@@ -140,9 +150,13 @@ def get_encoder(model_description):
 
 
 def get_head(model_description, **kwargs):
+    """
+    Use this function to get classification / regression head depending on the
+    super_model (category 3)
+    """
     if model_description == "UNet":
         return SegmentationHead(
-            in_channels=kwargs["in_channels"],
+            in_channels=16,
             out_channels=kwargs["out_channels"],
             activation=kwargs["activation"],
             kernel_size=kwargs["kernel_size"],
@@ -150,7 +164,7 @@ def get_head(model_description, **kwargs):
         )
     elif model_description == "DeepLabV3":
         return SegmentationHead(
-            in_channels=kwargs["in_channels"],
+            in_channels=kwargs["decoder"].out_channels,
             out_channels=kwargs["out_channels"],
             activation=kwargs["activation"],
             kernel_size=kwargs["kernel_size"],

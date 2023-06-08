@@ -22,6 +22,15 @@ from utils.loss_functions import BerHuLoss
 
 class BaseTrainer:
     def __init__(self, config):
+        # initialization
+        self.scheduler = None
+        self.optimizer = None
+        self.nan_reduction = None
+        self.transform_config = None
+        self.model = None
+        self.loss = None
+        self.val_loader = None
+        self.train_loader = None
         self.config = config
         self.logger = ProjectLogger(self.config)
         self.prev_val_loss = np.infty
@@ -32,6 +41,7 @@ class BaseTrainer:
         self._make_output_dir()
         self.writer = SummaryWriter(log_dir=self.tensorboard_dir)
 
+        # initialize wandb
         self.logger.debug("initializing wandb")
         if self.config["wandb"]["wandb"]:
             self.run = wandb.init(
@@ -89,11 +99,15 @@ class BaseTrainer:
         )
 
     def build_model(self):
+        """
+        specifies model, losses, optimizer, schedulers
+        """
         self.logger.info("Building model")
         learning_rate = self.config["hyperparameters"]["train"]["learning_rate"]
         weight_decay = self.config["hyperparameters"]["train"]["weight_decay"]
         epochs = self.config["hyperparameters"]["train"]["epochs"]
 
+        # get the model specified in the config
         self.model, self.transform_config = ModelFactory().get_model(
             self.config, in_channels=3
         )
@@ -106,6 +120,8 @@ class BaseTrainer:
         else:
             raise ValueError("Please specify correct depth loss")
 
+        # we want to ignore pixels with nan values, which is why we use nanmean for
+        # reduction of losses
         self.nan_reduction = torch.nanmean
         self.optimizer = torch.optim.Adam(
             self.model.parameters(), lr=learning_rate, weight_decay=weight_decay
@@ -115,6 +131,14 @@ class BaseTrainer:
         )
 
     def step(self, data):
+        """
+        Does a single step.
+        1) gets data
+        2) computes prediction
+        3) computes losses and metrics
+        does explicitly not do gradient descent, as it is used by both training and
+        validation
+        """
         image = data["input_image"].to(self.config["device"])
         target = data["depths"].to(self.config["device"])
 
@@ -125,8 +149,6 @@ class BaseTrainer:
         loss = self.loss(pred, target)
         loss = self.nan_reduction(loss)
         metrics = depth_metrics(pred, target, self.epsilon, self.config)
-
-        # print(loss.item())
 
         full_metrics = {"depth_loss": loss.item(), **metrics}
 
@@ -152,22 +174,14 @@ class BaseTrainer:
 
         self.scheduler.step()
 
+        # average metrics over epoch
         total_metrics = {
             f"train_{k}": v / len(self.train_loader) for k, v in total_metrics.items()
         }
         return total_metrics
 
-        # img = data["original_image"]
-        # img = img.clone().detach().cpu().numpy()[0].transpose(1, 2, 0)
-        # plt.imshow(img)
-        # plt.show()
-        # plt.imshow(target.clone().detach().cpu().numpy()[0].transpose(1, 2, 0))
-        # plt.show()
-        # plt.imshow(pred.clone().detach().cpu().numpy()[0].transpose(1, 2, 0))
-        # plt.show()
-
     def train(self):
-        # so logging starts at 1
+        # initialize logging, so it starts at 1
         if self.config["wandb"]["wandb"]:
             wandb.log({})
         self.logger.info(str(self.config))
@@ -187,8 +201,10 @@ class BaseTrainer:
         for epoch in range(
             start_epoch, self.config["hyperparameters"]["train"]["epochs"] + 1
         ):
+            # 1) train an epoch
             train_metrics = self.train_one_epoch(epoch)
 
+            # 2) save model if necessary (always save last epoch)
             if (
                 epoch % self.config["hyperparameters"]["train"]["save_every"] == 0
                 or epoch == self.config["hyperparameters"]["train"]["epochs"]
@@ -196,6 +212,7 @@ class BaseTrainer:
                 path = os.path.join(self.checkpoints_dir, f"epoch_{epoch}")
                 self._save_state(path)
 
+            # 3) validate model performance if necessary
             if epoch % self.config["hyperparameters"]["val"]["val_every"] == 0:
                 val_metrics = self.validate(epoch)
                 self._log(epoch, **train_metrics, **val_metrics)
@@ -205,6 +222,10 @@ class BaseTrainer:
         self._close()
 
     def validate(self, epoch):
+        """
+        Validation. Checks each image in the validation set and averages the results for
+        logging.
+        """
         self.logger.info(f"Validating: Epoch {epoch}")
         total_loss = 0
         total_metrics = defaultdict(float)
@@ -229,6 +250,9 @@ class BaseTrainer:
         return val_metrics
 
     def _make_output_dir(self):
+        """
+        Creates all the different directories for saving results and metrics.
+        """
         self.logger.info("Creating experiment log directories")
         experiments_folder = self.config.get_subpath("output")
         self.id = name_stem = self.config.get_name_stem()
@@ -260,7 +284,6 @@ class BaseTrainer:
     def _load_state(self, path):
         model_path = os.path.join(path, self.config["save_names"]["weights"])
         optimizer_path = os.path.join(path, self.config["save_names"]["optimizer"])
-        config_path = os.path.join(path, "config.json")
 
         model_state_dict = torch.load(model_path, map_location=self.config["device"])
         optimizer_state_dict = torch.load(
@@ -285,6 +308,6 @@ class BaseTrainer:
     @abstractmethod
     def flag_sanity_check(self, flags):
         """
-        Checks the flags for compatibility
+        Checks the flags for compatibility, overwritten in next classes
         """
         id(flags)

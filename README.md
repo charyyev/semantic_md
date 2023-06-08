@@ -1,71 +1,98 @@
-# DeepLearningInit
-This is a repository for initializing deep learning projects.
+# Semantic-MD: Infusing Monocular Depth with Semantic Signals
+This is the official GitHub of the "Semantic-MD: Infusing Monocular Depth with Semantic Signals" project.
 
-## Overall Setup
+Contributors: [Sapar Charyyev](https://github.com/charyyev), [Ankita Ghosh](https://github.com/ankitaghosh9), [Oliver Lemke](https://github.com/oliver-lemke)
+
+---
+
+# Usage
+### Setting up the config file
+Please set up a configs/user.yaml config file to specify your local paths. Please refer to the configs/template.yaml for instructions.
+This project cannot run without it.
+### Running the project
+Please run `python3 main.py`
+
+`--config <entry_config.yaml>` specifies the config yaml to be used as an entry point. Default is user.yaml.
+If you follow the config setup as specified in the template, this option needs not be set.
+
+---
+
+# Project Setup
+
+For more specific details on each file and the associated code, please check the files for comments.
+
 <pre>
-project_root_dir/                                   <--- root directory of the project
-├── source/                                         <--- all code stored here
-│   ├── main.py                                     <--- contains the main method
-│   ├── trainer.py                                  <--- contains the trainer class responsible for all trainin 
-│   │   ├── datasets/
-│   │   │   ├── dataset_template.py                 <--- template for how to write a dataset
-│   │   │   └── ...
+project_root_dir/ 				<--- root directory of the project
+├── source/ 					<--- all code stored here
+│   ├── datasets/
+│   │   ├── hypersim_dataset.py 		<--- contains the dataset implmentation for the HyperSim dataset
+│   │   └── ...
 │   ├── models/
-│   │   ├── __init__.py                             <--- contains the model_factory which is responsible for building a model
-│   │   ├── template_model.py                       <--- template for how a model should look like
-│   │   ├── specialized_networks/                   <--- use this folder for special changes to the network
-│   │   │   ├── special_example.py                  <--- example for such a network change
+│   │   ├── __init__.py 			<--- contains the model_factory which is responsible for building a model
+│   │   ├── template_model.py 			<--- template for how a model should look like
+│   │   ├── specialized_networks/ 		<--- use this folder for special changes to the network
+│   │   │   ├── special_example.py 		<--- example for such a network change
 │   │   │   └── ...
-│   ├── scripts/                                    <--- contains scripts to be run independently (e.g. for setup)
-│   │   ├── setup_script.py                         <--- one script do the entire setup, does not do user.yaml config
+│   ├── scripts/ 				<--- contains scripts to automate certain tasks, mostly not relevant to the final execution of the project
+│   │   ├── vis/ 				<--- scripts for running visualization
+│   │   │   ├── main_vis.py 			<--- run this script to run visualization
+│   │   │   └── x_visualizer.py 		<--- various implementations of the visualizer class; for more info check comments in file
+│   │   │   └── ...
+│   ├── trainer.py 				<--- contains the trainer class implementations
+│   │   ├── base_trainer.py 			<--- base class implementation of the trainer class, can be extended 
+│   │   ├── multi_loss_trainer.py 		<--- one such extension of the base trainer; takes care of training multi_loss (2 heads) model
 │   │   └── ...
 │   ├── utils/
-│   │   ├── configs.py                              <--- ease of use class for accessing config
-│   │   ├── eval_metrics.py                         <--- additional metrics to keep track of
-│   │   ├── logs.py                                 <--- project-specific logging configuration
+│   │   ├── configs.py 				<--- ease of use class for accessing config
+│   │   ├── conversions.py 			<--- implements methods of converting semantic map as seen in the paper
+│   │   ├── eval_metrics.py 			<--- additional metrics to keep track of
+│   │   ├── logs.py 				<--- project-specific logging configuration
+│   │   ├── loss_functions.py 			<--- implementation of additional loss functions
+│   │   ├── transforms.py 			<--- various transformations of image data
 │   │   └── ...
+│   ├── main.py 				<--- contains the main method
 │   └── ...
 │
 ├── configs/
-│   ├── base.yaml                                   <--- base config file used for changing the actual project
-│   ├── template.yaml                               <--- template config for setting up user.yaml
-│   └── user.yaml                                   <--- personal config file to set up config for this specific workspace
+│   ├── base.yaml 				<--- base config file used for changing the actual project
+│   ├── template.yaml 				<--- template config for setting up user.yaml
+│   └── user.yaml 				<--- personal config file to set up config for this specific workspace
 │
-├── data/                                           <--- contains any used datasets
-│   ├── README.md                                   <--- markdown file which explains the data and structure
+├── logs/ 					<--- contains logs
 │   └── ...
 │
-├── logs/                                           <--- contains logs
+├── data/ 					<--- contains any used datasets
 │   └── ...
 │
-├── pretrained_weights/                             <--- contains model_weights
-│   ├── template_weights/                           <--- template configuration
-│   │   ├── weights.pth                             <--- actual weights for the model
-│   │   └── pretrained_metadata.pickle              <--- metadata (config used for pretraining)
+├── pretrained_weights/ 			<--- contains model_weights
+│   ├── template_weights/ 			<--- template configuration
+│   │   ├── weights.pth 			<--- actual weights for the model
+│   │   └── weights_object.pickle 		<--- metadata (config used for pretraining)
 │
-├── output/                                         <--- any model output
+├── output/ 					<--- any model output
 │   ├── template_output/
-│   │   ├── checkpoints/
-│   │   │   ├── weights.pth                         <--- model weights at checkpoint
-│   │   │   └── optimizer.pth                       <--- optimizer state at checkpoint
 │   │   ├── best_checkpoints/
-│   │   └── tensorboard/                            <--- tensorboard directory
-│   │   └── wandb/                                  <--- wandb directory
-│
-├── cache/                                          <--- any local caching that is needed
-│   └── ...
+│   │   │   └── ... 				<--- explanation of checkpoint structure under checkpoints/
+│   │   ├── checkpoints/
+│   │   │   ├── epoch_x/ 			<--- model weights at checkpoint
+│   │   │   │   ├── optimizer.pth 		<--- optimizer state at checkpoint
+│   │   │   │   └── weights.pth 		<--- model weights at checkpoint
+│   │   └── tensorboard/  			<--- tensorboard directory
+│   │   └── wandb/ 				<--- wandb directory
 │
 ├── .github/                                        
-│   ├── workflows/                                  <--- github actions 
+│   ├── workflows/ 				<--- github actions 
 │   │   ├── black.yml
 │   │   ├── isort.yml
 │   │   ├── pylint.yml
 │   │   └── ...
 │
-├── .gitignore                                      <--- global .gitignore
+├── .gitignore 					<--- global .gitignore
 ├── requirements.txt
 └── README.md
 </pre>
+
+---
 
 # GitHub Actions
 This project uses [black](https://pypi.org/project/black/) and
@@ -74,25 +101,22 @@ This project uses [black](https://pypi.org/project/black/) and
 
 ## PyCharm setup
 1. Download the [File Watchers](https://www.jetbrains.com/help/pycharm/using-file-watchers.html)
-Plugin
+   Plugin
 2. Under Settings > Tools > File Watcher > + > \<custom>: setup a new watcher for each
-   1. black
-      - Name: Black Watcher
-      - File type: Python
-      - Scope: Project Files
-      - Program: $PyInterpreterDirectory$/black
-      - Arguments: $FilePath$
-      - Output paths to refresh: $FilePath$
-      - Working directory: $ProjectFileDir$
-      - Additional: as wished
-   2. isort
-      - Name: iSort Watcher
-      - Program: $PyInterpreterDirectory$/isort
-      - Arguments: $FilePath$ --sp $ContentRoot$/.style/.isort.cfg --settings-path $ProjectFileDir$/pyproject.toml
-   3. pylint
-      - Name: PyLint Watcher
-      - Program: $PyInterpreterDirectory$/pylint
-      - Arguments: --msg-template="$FileDir$/{path}:{line}:{column}:{C}:({symbol}){msg}" $FilePath$ --rcfile $ProjectFileDir$/pyproject.toml
-
-## VsCode setup
-TODO
+	1. black
+		- Name: Black Watcher
+		- File type: Python
+		- Scope: Project Files
+		- Program: $PyInterpreterDirectory$/black
+		- Arguments: $FilePath$
+		- Output paths to refresh: $FilePath$
+		- Working directory: $ProjectFileDir$
+		- Additional: as wished
+	2. isort
+		- Name: iSort Watcher
+		- Program: $PyInterpreterDirectory$/isort
+		- Arguments: $FilePath$ --sp $ContentRoot$/.style/.isort.cfg --settings-path $ProjectFileDir$/pyproject.toml
+	3. pylint
+		- Name: PyLint Watcher
+		- Program: $PyInterpreterDirectory$/pylint
+		- Arguments: --msg-template="$FileDir$/{path}:{line}:{column}:{C}:({symbol}){msg}" $FilePath$ --rcfile $ProjectFileDir$/pyproject.toml

@@ -11,6 +11,11 @@ from segmentation_models_pytorch.encoders import get_encoder
 
 
 class SobelLossModel(nn.Module):
+    """
+    This model is a variation on multi_loss that predicts sobel ind depths instead of
+    semantic segmentation maps.
+    """
+
     def __init__(self, config):
         super().__init__()
         self.config = config
@@ -59,7 +64,6 @@ class SobelLossModel(nn.Module):
         )
 
     def forward(self, x):
-        # self.test(x)
         x = self.encoder(x)
         pred_depth = self.decoder_depth(*x)
         pred_depth = self.head_depth(pred_depth)
