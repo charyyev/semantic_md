@@ -13,12 +13,12 @@
 
 # Finally we have "soble_loss", "contour_loss" and "semantic_baseline" used in ablation
 # studies
-model_type: "contour_loss"
+model_type: "multi_loss"
 # specifies the type of encoding-decoding architecture used in multi_ and triple_loss
-# can be either "DeepLabV3"
-super_model: "DeepLabV3"
+# can be either "DeepLabV3" or "UNet"
+super_model: "UNet"
 # used for naming saved models
-note: "deeplab_semantic_baseline_DiceCE"
+note: "deeplab_contour_DiceCE"
 device: "cuda"
 
 # wandb settings
@@ -110,5 +110,9 @@ pretrained_names:
 # please use this to specify which model you are visualizing (do not have to change
 # the other parameters)
 visualize:
-    model_type: "triple_loss"
-    model_path: ""
+    model_type: "uefficientnet_b4"
+    model_path: "/home/oliver/Documents/University/2023/ext-projects/3dv/vis_models/model_uefficientnet_b4_ueffnet_baseline_20K_l1___2023-05-05__16-56-07/weights.pth"
+
+# specify elasticity of leading pretrained weights
+load:
+    strict: true

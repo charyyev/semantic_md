@@ -156,7 +156,7 @@ def get_head(model_description, **kwargs):
     """
     if model_description == "UNet":
         return SegmentationHead(
-            in_channels=kwargs["in_channels"],
+            in_channels=16,
             out_channels=kwargs["out_channels"],
             activation=kwargs["activation"],
             kernel_size=kwargs["kernel_size"],
@@ -164,7 +164,7 @@ def get_head(model_description, **kwargs):
         )
     elif model_description == "DeepLabV3":
         return SegmentationHead(
-            in_channels=kwargs["in_channels"],
+            in_channels=kwargs["decoder"].out_channels,
             out_channels=kwargs["out_channels"],
             activation=kwargs["activation"],
             kernel_size=kwargs["kernel_size"],

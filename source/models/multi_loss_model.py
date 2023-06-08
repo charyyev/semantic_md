@@ -29,7 +29,7 @@ class MultiLossModel(nn.Module):
 
         self.head_depth = model_utils.get_head(
             super_model,
-            in_channels=self.decoder_depth.out_channels,
+            decoder=self.decoder_depth,
             out_channels=1,
             activation=None,
             kernel_size=3,
@@ -37,7 +37,7 @@ class MultiLossModel(nn.Module):
 
         self.head_semantic = model_utils.get_head(
             super_model,
-            in_channels=self.decoder_semantic.out_channels,
+            decoder=self.decoder_semantic,
             out_channels=self.config["data_flags"]["parameters"]["seg_classes"],
             activation=None,
             kernel_size=3,

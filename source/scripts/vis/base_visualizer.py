@@ -17,6 +17,7 @@ class BaseVisualizer:
         self.index = self.config["visualize"]["start"]
         # current downloads is used to store images for saving
         self.current_downloads = {}
+        self.min_depth, self.max_depth = 0.0, 1.0
 
         config["device"] = "cpu"
         self._init()
@@ -133,12 +134,19 @@ class BaseVisualizer:
         file_name = os.path.join(base_path, folder_name, f"Image_{self.index}")
         os.makedirs(file_name, exist_ok=True)
         # save each image specified in current_downloads
+        model_name = self.config["visualize"]["model_name"]
         for name, (arr, cmap) in self.current_downloads.items():
             if arr is None:
                 continue
-            save_path = os.path.join(file_name, f"{name}.png")
+            save_path = os.path.join(file_name, f"{name}_{model_name}.png")
             if cmap:
-                mpimg.imsave(save_path, arr, cmap="viridis")
+                mpimg.imsave(
+                    save_path,
+                    arr,
+                    cmap="viridis",
+                    vmin=self.min_depth,
+                    vmax=self.max_depth,
+                )
             else:
                 mpimg.imsave(save_path, arr)
         # notify used saving is completed
