@@ -18,14 +18,14 @@ model_type: "multi_loss"
 # can be either "DeepLabV3" or "UNet"
 super_model: "UNet"
 # used for naming saved models
-note: "deeplab_contour_DiceCE"
+note: "DICE"
 device: "cuda"
 
 # wandb settings
 wandb:
     wandb: true
     entity: "semantic_md"
-    project: "deeplab_test"
+    project: "losses"
     group: null
 
 resume:
@@ -62,7 +62,7 @@ data_flags:
         sobel_ksize: 5
     # specify return_type get
     return_types:
-        contour: true # true when type == contour
+        contour: false # true when type == contour
         simplified_onehot: false # true when type == simplified_onehot
         sobel: false # true when running sobel model
 
@@ -78,13 +78,13 @@ hyperparameters:
         # lambda used for weighing the segmentation losses
         lambda_semantic: 0.07
         # type of semantic loss function, can be CE, Dice, FTL, Dice_CE, FTL_CE
-        semantic_loss_type: "Dice_CE"
+        semantic_loss_type: "Dice"
         # parameters for different semantic losses
         weight_lambda: 0.5
         weight_alpha: 0.8
         weight_gamma: 1.5
         # lambda used for weighing the contour losses
-        lambda_contours: 0.07
+        lambda_contours: 0.1
         # lambda used for weighing the sobel losses
         lambda_sobel: 1
     val:
