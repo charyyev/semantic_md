@@ -34,8 +34,7 @@ python source/script/extract_data.py
 This will convert the xxx.hdf5 files into xxx.npy files and store them in a new directory ```HyperSim_Data_extracted``` and
 create new path files inside ```source/datasets/paths```
 
-**NOTE**: Before executing this file please reformat the *root path part* of the paths in files ```source/datasets/paths/xxx.txt```
-
+**NOTE**: Before executing this file please reformat the *root path part* of the paths in files ```source/datasets/paths/xxx.txt``` <br>
 (*root path part*: /cluster/project/infk/courses/252-0579-00L/group22_semanticMD/)
 
 
