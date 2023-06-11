@@ -37,8 +37,8 @@ resume:
 subpaths:
     output: "../output"
     data_location: "../HyperSim_Data_extracted"
-    train_data: "data/hypersim/paths/train_img_path_extracted.txt"
-    val_data: "data/hypersim/paths/val_img_path_extracted.txt"
+    train_data: "source/datasets/paths/train_img_path_extracted.txt"
+    val_data: "source/datasets/paths/val_img_path_extracted.txt"
     load: ""
     pretrained_weights_path: "pretrained_weights"
     logs: "logs"
@@ -93,8 +93,8 @@ hyperparameters:
 
 transformations:
     resize:
-        width: 342 #previous: 768
-        height: 256 #previous: 576
+        width: 342
+        height: 256 
     depth_range:
         min: 0
         max:  15
@@ -111,7 +111,7 @@ pretrained_names:
 # the other parameters)
 visualize:
     model_type: "uefficientnet_b4"
-    model_path: "/home/oliver/Documents/University/2023/ext-projects/3dv/vis_models/model_uefficientnet_b4_ueffnet_baseline_20K_l1___2023-05-05__16-56-07/weights.pth"
+    model_path: "../model_uefficientnet_b4_ueffnet_baseline_20K_l1___2023-05-05__16-56-07/weights.pth"
 
 # specify elasticity of leading pretrained weights
 load:
