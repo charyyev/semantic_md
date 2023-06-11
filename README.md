@@ -24,7 +24,7 @@ This will create a new folder ```pretrained_weights```.
 ```shell
 python HyperSim_Data/download_data.py
 ```
-This will download data the required xxx.hdf5 files in the HyperSim_Data folder.
+This will download data the required xxx.hdf5 files in the ```HyperSim_Data``` folder.
 
 **NOTE**: The data is approximately 94GB and will take upto several hours to download
 
