@@ -37,6 +37,7 @@ create new path files inside ```source/datasets/paths```
 **NOTE**: Before executing this file please reformat the *root path part* of the paths in files ```source/datasets/paths/xxx.txt``` <br>
 (*root path part*: /cluster/project/infk/courses/252-0579-00L/group22_semanticMD/)
 
+To download a small sample of the dataset for testing purposes: ``` ./source/scripts/local_hypersim.sh```
 
 
 
