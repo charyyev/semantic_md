@@ -6,8 +6,43 @@ Contributors: [Sapar Charyyev](https://github.com/charyyev), [Ankita Ghosh](http
 ---
 
 # Usage
+### Setting up dependencies
+Setup virtual environment:
+```shell
+python3 -m venv venvs
+source venvs/bin/activate
+cd path/to/repo
+pip install -r requirements.txt
+```
+Download pretrained weights:
+```shell
+python source/scripts/download_model_weights.py
+```
+This will create a new folder ```pretrained_weights```.
+
+### Downloading and formatting dataset
+```shell
+python HyperSim_Data/download_data.py
+```
+This will download data the required xxx.hdf5 files in the HyperSim_Data folder.
+
+**NOTE**: The data is approximately 94GB and will take upto several hours to download
+
+```shell
+python source/script/extract_data.py
+```
+This will convert the xxx.hdf5 files into xxx.npy files and store them in a new directory ```HyperSim_Data_extracted``` and
+create new path files inside ```source/datasets/paths```
+
+**NOTE**: Before executing this file please reformat the *root path part* of the paths in files ```source/datasets/paths/xxx.txt```
+
+(*root path part*: /cluster/project/infk/courses/252-0579-00L/group22_semanticMD/)
+
+
+
+
 ### Setting up the config file
-Please set up a configs/user.yaml config file to specify your local paths. Please refer to the configs/template.yaml for instructions.
+Please set up a ```configs/user.yaml``` config file to specify your local paths. Please refer to the ```configs/template.yaml``` for instructions.
 This project cannot run without it.
 ### Running the project
 Please run `python3 main.py`
