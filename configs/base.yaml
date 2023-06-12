@@ -6,7 +6,7 @@
 
 # For category 1 and 2, it is typically "uefficientnet_b4", which specifies the
 # architecture used in the encoder. Variations to the "super-architecture" (eg. for
-# models in category 2 are done under data_flags
+# models in category 2) are done under data_flags
 
 # For category 3 it is either "multi_loss" for 2 heads, or "triple_loss" for 3.
 # Do not specify in data_flag/type when using these models
@@ -49,7 +49,14 @@ data_flags:
     # type specifies the overall architecture (used in category *2*)
     # can be concat, contour, semantic_convolution, simplified_onehot
     # do not specify when using category 3 models
-    type: null
+    type: semantic_convolution
+    ####################################################################################
+    # concat: set type=concat, return_types=false
+    # contour: set type=concat, return_types:contour=true
+    # semantic_convolution: set type=semantic_convolution, return_types=false
+    # simplified_onehot: set type=simplified_onehot, return_types:simplified_onehot=true
+    #     parameters:simplified_onehot_classes=N
+    ####################################################################################
     # segmentation classes are specified as the top classes (sorted by prevalence in the
     # dataset (max. 40).
     parameters:
