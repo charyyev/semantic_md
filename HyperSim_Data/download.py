@@ -23,13 +23,14 @@
 # SOFTWARE.
 #
 
-import os
 import argparse
-import requests
+import os
 import zipfile
 
+import requests
+
 # Increase download speed
-zipfile.ZipExtFile.MIN_READ_SIZE = 2 ** 20
+zipfile.ZipExtFile.MIN_READ_SIZE = 2**20
 
 URLS = [
     "https://docs-assets.developer.apple.com/ml-research/datasets/hypersim/v1/scenes/ai_001_001.zip",
@@ -543,17 +544,14 @@ def download_files(args):
     session = requests.session()
 
     # For each zip file
-    for url in URLS:
-
+    for url in URLS:  # pylint: disable=too-many-nested-blocks
         if args.scene is None or args.scene in url:
-
             f = WebFile(url, session)
 
-            z = zipfile.ZipFile(f)
+            z = zipfile.ZipFile(f)  # pylint: disable=consider-using-with
 
             # for each file in zip file
             for entry in z.infolist():
-
                 # skip directories in zip file (will be created automatically)
                 if entry.is_dir():
                     continue
@@ -567,17 +565,15 @@ def download_files(args):
                 if args.list:
                     if contains_all_words:
                         print(entry.filename)
-                else:
-                    if contains_all_words:
-                        if os.path.isfile(path) and not args.overwrite:
-                            print("File already exists:", path)
-                        else:
-                            print("Downloading:", path)
-
-                            z.extract(entry.filename, args.directory)
+                elif contains_all_words:
+                    if os.path.isfile(path) and not args.overwrite:
+                        print("File already exists:", path)
                     else:
-                        if not args.silent:
-                            print("Skipping:", path)
+                        print("Downloading:", path)
+
+                        z.extract(entry.filename, args.directory)
+                elif not args.silent:
+                    print("Skipping:", path)
 
 
 def main():
@@ -604,12 +600,33 @@ example: print this help text
         epilog=epilog, formatter_class=argparse.RawDescriptionHelpFormatter
     )
 
-    parser.add_argument("-d", "--directory", type=str, default="downloads", help="directory to download to")
-    parser.add_argument("-o", "--overwrite", action="store_true", help="overwrite existing files")
-    parser.add_argument("-c", "--contains", nargs="*", action="append", default=[], help="only download file if name contains specific word(s)")
-    parser.add_argument("-e", "--scene", type=str, help="only download files from this scene")
-    parser.add_argument("-s", "--silent", action="store_true", help="only print downloaded files")
-    parser.add_argument("-l", "--list", action="store_true", help="only list files, do not download")
+    parser.add_argument(
+        "-d",
+        "--directory",
+        type=str,
+        default="downloads",
+        help="directory to download to",
+    )
+    parser.add_argument(
+        "-o", "--overwrite", action="store_true", help="overwrite existing files"
+    )
+    parser.add_argument(
+        "-c",
+        "--contains",
+        nargs="*",
+        action="append",
+        default=[],
+        help="only download file if name contains specific word(s)",
+    )
+    parser.add_argument(
+        "-e", "--scene", type=str, help="only download files from this scene"
+    )
+    parser.add_argument(
+        "-s", "--silent", action="store_true", help="only print downloaded files"
+    )
+    parser.add_argument(
+        "-l", "--list", action="store_true", help="only list files, do not download"
+    )
 
     args = parser.parse_args()
 

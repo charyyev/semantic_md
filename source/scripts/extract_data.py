@@ -118,12 +118,8 @@ def _extract_data(path):
 
 def main():
     train_path = "./source/datasets/paths/train_imgPath.txt"
-    val_path = (
-        "./source/datasets/paths/val_imgPath.txt"
-    )
-    test_path = (
-        "./source/datasets/paths/test_imgPath.txt"
-    )
+    val_path = "./source/datasets/paths/val_imgPath.txt"
+    test_path = "./source/datasets/paths/test_imgPath.txt"
 
     _extract_data(train_path)
     print("Train done")

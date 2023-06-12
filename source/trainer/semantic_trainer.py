@@ -9,6 +9,7 @@ class SemanticTrainer(BaseTrainer):
     """
     Trainer for baseline semantic
     """
+
     def build_model(self):
         super().build_model()
 
@@ -48,10 +49,10 @@ class SemanticTrainer(BaseTrainer):
 
         self.optimizer.zero_grad()
 
-        #predicting semantics from the model
+        # predicting semantics from the model
         pred_semantic = self.model(image)
 
-        #calculating one of the following losses depending on parameter provided in config:
+        # calculating one of the following losses depending on parameter provided in config:
         # cross-entropy, dice, focal tversky loss (ftl), combination of cross-entropy and dice/ftl
         if (
             self.config["hyperparameters"]["train"]["semantic_loss_type"] == "Dice_CE"

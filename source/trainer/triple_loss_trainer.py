@@ -58,14 +58,14 @@ class TripleLossTrainer(BaseTrainer):
 
         self.optimizer.zero_grad()
 
-        #obtaining depth, semantic and contour predictions from the model
+        # obtaining depth, semantic and contour predictions from the model
         pred_depth, pred_semantic, pred_contours = self.model(input_image)
-        
-        #calculating regression loss for depth
+
+        # calculating regression loss for depth
         loss_depth = self.loss_depth(pred_depth, depth)
         loss_depth = self.nan_reduction(loss_depth)
 
-        #calculating one of the following losses depending on parameter provided in config:
+        # calculating one of the following losses depending on parameter provided in config:
         # cross-entropy, dice, focal tversky loss (ftl), combination of cross-entropy and dice/ftl
         if (
             self.config["hyperparameters"]["train"]["semantic_loss_type"] == "Dice_CE"
@@ -85,11 +85,11 @@ class TripleLossTrainer(BaseTrainer):
         else:
             loss_semantic = self.loss_semantic(pred_semantic, semantic)
 
-        #calculating binary cross-entropy loss for contours
+        # calculating binary cross-entropy loss for contours
         loss_contours = self.loss_contours(pred_contours, contours)
         loss_contours = self.nan_reduction(loss_contours)
 
-        #weighted combination of loss
+        # weighted combination of loss
         lam_semantic = self.config["hyperparameters"]["train"]["lambda_semantic"]
         lam_contours = self.config["hyperparameters"]["train"]["lambda_contours"]
         loss = loss_depth + lam_semantic * loss_semantic + lam_contours * loss_contours

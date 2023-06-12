@@ -27,18 +27,18 @@ class SobelTrainer(BaseTrainer):
 
         self.optimizer.zero_grad()
 
-        #obtaining depth, semantic and contour predictions from the model
+        # obtaining depth, semantic and contour predictions from the model
         pred_depth, pred_sobel = self.model(input_image)
-        
-        #calculating regression loss for depth
+
+        # calculating regression loss for depth
         loss_depth = self.loss_depth(pred_depth, depth)
         loss_depth = self.nan_reduction(loss_depth)
 
-        #calculating binary cross-entropy loss for depth discontinuities extracted using sobel filter
+        # calculating binary cross-entropy loss for depth discontinuities extracted using sobel filter
         loss_sobel = self.loss_sobel(pred_sobel, sobel)
         loss_sobel = self.nan_reduction(loss_sobel)
 
-        #weighted combination of loss
+        # weighted combination of loss
         lam_sobel = self.config["hyperparameters"]["train"]["lambda_sobel"]
         loss = loss_depth + lam_sobel * loss_sobel
 

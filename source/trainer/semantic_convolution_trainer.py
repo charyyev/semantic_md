@@ -6,6 +6,7 @@ class SemanticConvolutionTrainer(BaseTrainer):
     """
     Trainer for multi-input semantic convolution approach
     """
+
     def step(self, data):
         image = data["input_image"].to(self.config["device"])
         target = data["depths"].to(self.config["device"])
