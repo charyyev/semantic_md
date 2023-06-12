@@ -64,7 +64,8 @@ class TripleVisualizer(BaseVisualizer):
         depths = data["depths"].squeeze().numpy()
         self.axes[0, 1].set_title("depth map")
         self.axes[0, 1].imshow(
-            depths, cmap="viridis", vmin=self.min_depth, vmax=self.max_depth
+            depths,
+            cmap="viridis",
         )
 
         # segmentation
@@ -88,7 +89,8 @@ class TripleVisualizer(BaseVisualizer):
         pred_depth = pred_depth.detach().numpy().squeeze()
         self.axes[1, 1].set_title("prediction depth")
         self.axes[1, 1].imshow(
-            pred_depth, cmap="viridis", vmin=self.min_depth, vmax=self.max_depth
+            pred_depth,
+            cmap="viridis",
         )
 
         pred_semantic = torch.argmax(pred_semantic, dim=1)
@@ -106,7 +108,8 @@ class TripleVisualizer(BaseVisualizer):
         diff = np.abs(depths - pred_depth)
         self.axes[1, 0].set_title("difference")
         self.axes[1, 0].imshow(
-            diff, cmap="viridis", vmin=self.min_depth, vmax=self.max_depth
+            diff,
+            cmap="viridis",
         )
 
         # square image

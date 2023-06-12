@@ -61,9 +61,7 @@ class ModelVisualizer(BaseVisualizer):
         # Depths
         depths = data["depths"].squeeze().numpy()
         self.axes[0, 1].set_title("depth map")
-        self.axes[0, 1].imshow(
-            depths, cmap="viridis", vmin=self.min_depth, vmax=self.max_depth
-        )
+        self.axes[0, 1].imshow(depths, cmap="viridis")
 
         # segmentation
         segs = data["original_seg"].squeeze().numpy()
@@ -96,16 +94,12 @@ class ModelVisualizer(BaseVisualizer):
             pred = self.model(input_)
         pred = pred.detach().numpy().squeeze()
         self.axes[1, 0].set_title("prediction")
-        self.axes[1, 0].imshow(
-            pred, cmap="viridis", vmin=self.min_depth, vmax=self.max_depth
-        )
+        self.axes[1, 0].imshow(pred, cmap="viridis")
 
         # Diff prediction ground truth
         diff = np.abs(depths - pred)
         self.axes[1, 1].set_title("difference")
-        self.axes[1, 1].imshow(
-            diff, cmap="viridis", vmin=self.min_depth, vmax=self.max_depth
-        )
+        self.axes[1, 1].imshow(diff, cmap="viridis")
 
         # square image
         square_length = image.shape[0]
