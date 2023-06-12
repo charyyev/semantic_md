@@ -120,7 +120,7 @@ pretrained_names:
 visualize:
     start: 0
     model_type: "uefficientnet_b4"
-    model_path: "/home/oliver/Documents/University/2023/ext-projects/3dv/vis_models/model_uefficientnet_b4_ueffnet_baseline_20K_l1___2023-05-05__16-56-07/weights.pth"
+    model_path: "/path/to/weights.pth"
     model_name: "naive"
 
 # specify elasticity of leading pretrained weights
