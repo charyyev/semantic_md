@@ -39,12 +39,19 @@ create new path files inside ```source/datasets/paths```
 
 To download a small sample of the dataset for testing purposes: ``` ./source/scripts/local_hypersim.sh```
 
-
-
 ### Setting up the config file
 Please set up a ```configs/user.yaml``` config file to specify your local paths. Please refer to the ```configs/template.yaml``` for instructions.
 This project cannot run without it.
+
 ### Running the project
+
+#### Visualizing Models
+Download model weights from [here](https://drive.google.com/file/d/1d0y0q_3sTj6Ba6uAT5quSMMQaEa-X59u/view?usp=sharing). <br>
+Specify the path of the downloaded model weights in `visualize` parameter of the config files.
+
+We provide our best performing models in the above link. In need of testing other methods, please contact us for the required models.
+
+#### Training Models
 Please run `python3 main.py`
 
 `--config <entry_config.yaml>` specifies the config yaml to be used as an entry point. Default is user.yaml.
