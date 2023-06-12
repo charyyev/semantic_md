@@ -35,7 +35,7 @@ class BaseVisualizer:
         Use this method to set up the dataset from which images are being visualized.
         """
         data_dir = self.config.get_subpath("data_location")
-        val_file_path = self.config.get_subpath("val_data")
+        val_file_path = self.config.get_subpath("vis_data")
         self.dataset = hypersim_dataset.HyperSimDataset(
             data_dir=data_dir,
             file_path=val_file_path,
@@ -189,7 +189,6 @@ class BaseVisualizer:
                 mpimg.imsave(save_path, arr)
 
     def on_key_press(self, event):
-        print(event.key)
         if event.key in {"right", "d"}:
             if self.index < len(self.dataset) - 1:
                 self.index += 1

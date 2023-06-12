@@ -36,9 +36,10 @@ resume:
 # subpaths specified relative to project_root_dir specified in user.yaml
 subpaths:
     output: "../output"
-    data_location: "../HyperSim_Data_extracted"
-    train_data: "source/datasets/paths/train_img_path_extracted.txt"
-    val_data: "source/datasets/paths/val_img_path_extracted.txt"
+    data_location: "test_data"
+    train_data: "source/datasets/paths/train_imgPath.txt"
+    val_data: "source/datasets/paths/val_imgPath.txt"
+    vis_data: "test_data/submission_path.txt"
     load: ""
     pretrained_weights_path: "pretrained_weights"
     logs: "logs"
@@ -49,7 +50,7 @@ data_flags:
     # type specifies the overall architecture (used in category *2*)
     # can be concat, contour, semantic_convolution, simplified_onehot
     # do not specify when using category 3 models
-    type: semantic_convolution
+    type: null
     ####################################################################################
     # concat: set type=concat, return_types=false
     # contour: set type=concat, return_types:contour=true
@@ -117,8 +118,10 @@ pretrained_names:
 # please use this to specify which model you are visualizing (do not have to change
 # the other parameters)
 visualize:
+    start: 0
     model_type: "uefficientnet_b4"
-    model_path: "../model_uefficientnet_b4_ueffnet_baseline_20K_l1___2023-05-05__16-56-07/weights.pth"
+    model_path: "/home/oliver/Documents/University/2023/ext-projects/3dv/vis_models/model_uefficientnet_b4_ueffnet_baseline_20K_l1___2023-05-05__16-56-07/weights.pth"
+    model_name: "naive"
 
 # specify elasticity of leading pretrained weights
 load:

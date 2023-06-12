@@ -11,7 +11,7 @@ def main():
     Main function used as entry point for visualization
     """
     mlp.use("TkAgg")
-    config = Config("visualize")
+    config = Config()
     model_type = config["visualize"]["model_type"]
     config["model_type"] = model_type
     if model_type is None:
