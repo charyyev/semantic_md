@@ -13,7 +13,6 @@ class MultiLossTrainer(BaseTrainer):
         elif self.config["hyperparameters"]["train"]["depth_loss_type"] == "berhu":
             self.loss_depth = BerHuLoss(contains_nan=True)
 
-        # self.loss_semantic = nn.CrossEntropyLoss(reduction="none", ignore_index=-1)
         if self.config["hyperparameters"]["train"]["semantic_loss_type"] == "CE":
             self.loss_semantic = nn.CrossEntropyLoss(reduction="none", ignore_index=-1)
         elif self.config["hyperparameters"]["train"]["semantic_loss_type"] == "Dice":
@@ -51,11 +50,15 @@ class MultiLossTrainer(BaseTrainer):
 
         self.optimizer.zero_grad()
 
+        #obtaining depth and semantic predictions from the model
         pred_depth, pred_semantic = self.model(image)
-        # clamp values to >0
+
+        #calculating regression loss for depth
         loss_depth = self.loss_depth(pred_depth, depth)
         loss_depth = self.nan_reduction(loss_depth)
 
+        #calculating one of the following losses depending on parameter provided in config:
+        # cross-entropy, dice, focal tversky loss (ftl), combination of cross-entropy and dice/ftl
         if (
             self.config["hyperparameters"]["train"]["semantic_loss_type"] == "Dice_CE"
         ) or (
@@ -73,8 +76,9 @@ class MultiLossTrainer(BaseTrainer):
             )
         else:
             loss_semantic = self.loss_semantic(pred_semantic, semantic)
-
         loss_semantic = self.nan_reduction(loss_semantic)
+
+        #weighted combination of loss
         lam = self.config["hyperparameters"]["train"]["lambda_semantic"]
         loss = loss_depth + lam * loss_semantic
 

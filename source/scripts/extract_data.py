@@ -89,7 +89,7 @@ def _extract_data(path):
 
     _, file_name = os.path.split(path)
     file_name = file_name.replace("imgPath.txt", "img_path_extracted.txt")
-    new_dir = "/cluster/project/infk/courses/252-0579-00L/group22_semanticMD/semantic_md/datasets/hypersim/paths/"
+    new_dir = "./source/datasets/paths/"
     new_txt_path = os.path.join(new_dir, file_name)
 
     try:
@@ -117,12 +117,12 @@ def _extract_data(path):
 
 
 def main():
-    train_path = "/cluster/project/infk/courses/252-0579-00L/group22_semanticMD/train_imgPath.txt"
+    train_path = "./source/datasets/paths/train_imgPath.txt"
     val_path = (
-        "/cluster/project/infk/courses/252-0579-00L/group22_semanticMD/val_imgPath.txt"
+        "./source/datasets/paths/val_imgPath.txt"
     )
     test_path = (
-        "/cluster/project/infk/courses/252-0579-00L/group22_semanticMD/test_imgPath.txt"
+        "./source/datasets/paths/test_imgPath.txt"
     )
 
     _extract_data(train_path)

@@ -62,7 +62,9 @@ class MultiVisualizer(BaseVisualizer):
         # Depths
         depths = data["depths"].squeeze().numpy()
         self.axes[0, 1].set_title("depth map")
-        self.axes[0, 1].imshow(depths, cmap="viridis")
+        self.axes[0, 1].imshow(
+            depths, cmap="viridis", vmin=self.min_depth, vmax=self.max_depth
+        )
 
         # segmentation
         segs = data["original_seg"].squeeze().numpy()
@@ -78,7 +80,9 @@ class MultiVisualizer(BaseVisualizer):
         pred_depth, pred_semantic = self.model(input_)
         pred_depth = pred_depth.detach().numpy().squeeze()
         self.axes[1, 1].set_title("prediction depth")
-        self.axes[1, 1].imshow(pred_depth, cmap="viridis")
+        self.axes[1, 1].imshow(
+            pred_depth, cmap="viridis", vmin=self.min_depth, vmax=self.max_depth
+        )
 
         pred_semantic = torch.argmax(pred_semantic, dim=1)
         pred_semantic = pred_semantic.detach().numpy().squeeze()
@@ -89,7 +93,9 @@ class MultiVisualizer(BaseVisualizer):
         # Diff prediction ground truth
         diff = np.abs(depths - pred_depth)
         self.axes[1, 0].set_title("difference")
-        self.axes[1, 0].imshow(diff, cmap="viridis")
+        self.axes[1, 0].imshow(
+            diff, cmap="viridis", vmin=self.min_depth, vmax=self.max_depth
+        )
 
         # square image
         square_length = image.shape[0]

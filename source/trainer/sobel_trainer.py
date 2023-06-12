@@ -1,13 +1,13 @@
 from torch import nn
 
 from trainer.base_trainer import BaseTrainer
-from utils.eval_metrics import border_metrics, depth_metrics
+from utils.eval_metrics import contour_metrics, depth_metrics
 from utils.loss_functions import BerHuLoss
 
 
 class SobelTrainer(BaseTrainer):
     def __init__(self, config):
-        config["data_flags"]["return_types"]["border"] = True
+        config["data_flags"]["return_types"]["contour"] = True
         super().__init__(config)
 
     def build_model(self):
@@ -27,19 +27,23 @@ class SobelTrainer(BaseTrainer):
 
         self.optimizer.zero_grad()
 
+        #obtaining depth, semantic and contour predictions from the model
         pred_depth, pred_sobel = self.model(input_image)
-        # clamp values to >0
+        
+        #calculating regression loss for depth
         loss_depth = self.loss_depth(pred_depth, depth)
         loss_depth = self.nan_reduction(loss_depth)
 
+        #calculating binary cross-entropy loss for depth discontinuities extracted using sobel filter
         loss_sobel = self.loss_sobel(pred_sobel, sobel)
         loss_sobel = self.nan_reduction(loss_sobel)
 
+        #weighted combination of loss
         lam_sobel = self.config["hyperparameters"]["train"]["lambda_sobel"]
         loss = loss_depth + lam_sobel * loss_sobel
 
         metrics_depth = depth_metrics(pred_depth, depth, self.epsilon, self.config)
-        metrics_sobel = border_metrics(pred_sobel, sobel, self.epsilon, self.config)
+        metrics_sobel = contour_metrics(pred_sobel, sobel, self.epsilon, self.config)
 
         full_metrics = {
             "loss": loss.item(),

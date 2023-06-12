@@ -7,6 +7,9 @@ from utils.configs import Config
 
 
 def main():
+    """
+    Main function used as entry point for visualization
+    """
     mlp.use("TkAgg")
     config = Config("visualize")
     model_type = config["visualize"]["model_type"]
