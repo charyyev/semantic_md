@@ -39,17 +39,22 @@ create new path files inside ```source/datasets/paths```
 
 To download a small sample of the dataset for testing purposes: ``` ./source/scripts/local_hypersim.sh```
 
+If you only want to test visualization, please copy the test_data/ folder into your project directory and specify the relative path with subpaths/vis_data in the config.
+
 ### Setting up the config file
 Please set up a ```configs/user.yaml``` config file to specify your local paths. Please refer to the ```configs/template.yaml``` for instructions.
 This project cannot run without it.
 
 ### Running the project
+Please make sure that your root path is set correctly. All import paths are relative to source/.
 
 #### Visualizing Models
 Download model weights from [here](https://drive.google.com/file/d/1d0y0q_3sTj6Ba6uAT5quSMMQaEa-X59u/view?usp=sharing). <br>
 Specify the path of the downloaded model weights in `visualize` parameter of the config files.
 
 We provide our best performing models in the above link. In need of testing other methods, please contact us for the required models.
+
+Please run `main_vis.py` in scripts/vis/maim/.
 
 #### Training Models
 Please run `python3 main.py`
