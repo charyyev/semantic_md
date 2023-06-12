@@ -6,6 +6,9 @@ import matplotlib.pyplot as plt
 
 
 def semantic_encode(seg_tensor, num_encode):
+    """
+    function to return modified one-channel semantic mask according to number of classes 
+    """
     seg_tensor = simplified_encode(seg_tensor, num_encode)
     seg_tensor = torch.cat((torch.zeros_like(seg_tensor[:1, :, :]), seg_tensor), dim=0)
     return torch.argmax(seg_tensor, dim=0) - 1
@@ -13,10 +16,12 @@ def semantic_encode(seg_tensor, num_encode):
 
 def simplified_encode(seg_tensor, num_encode):
     """
+    one-hot encodes the semantic map according to the number of classes desired
+
     Semantic labels are 1-40(inclusive), no 0 present, -1 means unlabeled: https://github.com/apple/ml-hypersim/issues/12
     Semantic labels: https://github.com/apple/ml-hypersim/blob/main/code/cpp/tools/scene_annotation_tool/semantic_label_descs.csv
-    seg_class_order is the order of prevalence of the segmentation classes
     """
+    #seg_class_order is the order of prevalence of the segmentation classes
     seg_class_order = [
         1,
         2,
@@ -78,6 +83,9 @@ def semantic_norm(seg_tensor, num_classes):
 
 
 def semantic_to_contour(seg):
+    """
+    extracts borders from semantic mask
+    """
     kernel = np.ones((3, 3), np.uint8)
     erosion = cv2.erode(seg, kernel, iterations=1)
     dilation = cv2.dilate(seg, kernel, iterations=1)

@@ -6,10 +6,12 @@ from utils.loss_functions import DiceLoss, FocalTverskyLoss
 
 
 class SemanticTrainer(BaseTrainer):
+    """
+    Trainer for baseline semantic
+    """
     def build_model(self):
         super().build_model()
 
-        # self.loss_semantic = nn.CrossEntropyLoss(reduction="none", ignore_index=-1)
         if self.config["hyperparameters"]["train"]["semantic_loss_type"] == "CE":
             self.loss_semantic = nn.CrossEntropyLoss(reduction="none", ignore_index=-1)
         elif self.config["hyperparameters"]["train"]["semantic_loss_type"] == "Dice":
@@ -46,8 +48,11 @@ class SemanticTrainer(BaseTrainer):
 
         self.optimizer.zero_grad()
 
+        #predicting semantics from the model
         pred_semantic = self.model(image)
 
+        #calculating one of the following losses depending on parameter provided in config:
+        # cross-entropy, dice, focal tversky loss (ftl), combination of cross-entropy and dice/ftl
         if (
             self.config["hyperparameters"]["train"]["semantic_loss_type"] == "Dice_CE"
         ) or (

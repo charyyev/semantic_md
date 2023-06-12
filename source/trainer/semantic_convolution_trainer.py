@@ -3,6 +3,9 @@ from utils.eval_metrics import depth_metrics
 
 
 class SemanticConvolutionTrainer(BaseTrainer):
+    """
+    Trainer for multi-input semantic convolution approach
+    """
     def step(self, data):
         image = data["input_image"].to(self.config["device"])
         target = data["depths"].to(self.config["device"])
@@ -15,8 +18,6 @@ class SemanticConvolutionTrainer(BaseTrainer):
         loss = self.loss(pred, target)
         loss = self.nan_reduction(loss)
         metrics = depth_metrics(pred, target, self.epsilon, self.config)
-
-        # print(loss.item())
 
         full_metrics = {"loss": loss.item(), **metrics}
 

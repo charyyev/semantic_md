@@ -32,8 +32,10 @@ class ContourTrainer(BaseTrainer):
 
         self.optimizer.zero_grad()
 
+        #obtaining depth and contour predictions from the model
         pred_depth, pred_contours = self.model(input_image)
 
+        #extracting depth discontinuities through Sobel filter
         pred_depth_to_numpy = pred_depth.squeeze(1).clone().detach().cpu().numpy()
         pred_sobel = np.zeros_like(pred_depth_to_numpy)
         for i in range(pred_depth_to_numpy.shape[0]):
@@ -46,16 +48,19 @@ class ContourTrainer(BaseTrainer):
         pred_sobel[pred_sobel == 0] = self.epsilon
         pred_sobel[pred_sobel == 1] = 1 - self.epsilon
 
-        # clamp values to >0
+        #calculating regression loss for depth
         loss_depth = self.loss_depth(pred_depth, depth)
         loss_depth = self.nan_reduction(loss_depth)
 
+        #calculating binary cross-entropy loss for contours
         loss_contours = self.loss_contours(pred_contours, contours)
         loss_contours = self.nan_reduction(loss_contours)
 
+        #calculating 'sobel loss' between depth and contours
         loss_sobel = self.loss_sobel(pred_sobel, contours.float())
         loss_sobel = self.nan_reduction(loss_sobel)
 
+        #weighted combination of loss
         lam_sobel = self.config["hyperparameters"]["train"]["lambda_sobel"]
         lam_contours = self.config["hyperparameters"]["train"]["lambda_contours"]
         loss = loss_depth + lam_contours * loss_contours + lam_sobel * loss_sobel
