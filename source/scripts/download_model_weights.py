@@ -62,7 +62,7 @@ def download(pretrained_weights_path, download_from_link):
 
 
 def main(download_from_link=False):
-    config = Config("euler")
+    config = Config()
     pretrained_weights_path = config.get_subpath("pretrained_weights_path")
     download(pretrained_weights_path, download_from_link)
     test(pretrained_weights_path)

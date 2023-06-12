@@ -162,3 +162,12 @@ This project uses [black](https://pypi.org/project/black/) and
 		- Name: PyLint Watcher
 		- Program: $PyInterpreterDirectory$/pylint
 		- Arguments: --msg-template="$FileDir$/{path}:{line}:{column}:{C}:({symbol}){msg}" $FilePath$ --rcfile $ProjectFileDir$/pyproject.toml
+
+---
+
+# Contribution
+All works is ours except if otherwise indicated in the respective file.
+(
+- HyperSim_Data/download.py
+- source/scripts/extract_data.py
+)
