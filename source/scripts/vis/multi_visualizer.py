@@ -40,7 +40,7 @@ class MultiVisualizer(BaseVisualizer):
             checkpoint = torch.load(
                 model_path, map_location=torch.device(self.config["device"])
             )
-            self.model.load_state_dict(checkpoint)
+            self.model.load_state_dict(checkpoint, strict=self.config["load"]["strict"])
         self.model.eval()
 
     def _setup_window(self):
@@ -102,3 +102,4 @@ class MultiVisualizer(BaseVisualizer):
             "pred_semantic": (pred_semantic, True),
             "segs": (img_segs_vir, False),
         }
+        self.current_max = max(np.max(depths), np.max(pred_depth))

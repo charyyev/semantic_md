@@ -11,7 +11,7 @@ from scripts.vis.base_visualizer import BaseVisualizer
 class TripleVisualizer(BaseVisualizer):
     def _setup_data(self):
         self.config["model_type"] = self.config["visualize"]["model_type"]
-        self.config["data_flags"]["return_types"]["border"] = True
+        self.config["data_flags"]["return_types"]["contour"] = True
 
         self.model, transform_config = ModelFactory().get_model(
             self.config, in_channels=3
@@ -74,10 +74,10 @@ class TripleVisualizer(BaseVisualizer):
         self.axes[0, 2].set_title("semantic map")
         self.axes[0, 2].imshow(img_segs_vir)
 
-        # border
-        border = data["border"].squeeze().numpy()
-        img_segs_post = cm.tab20b(border)[:, :, :3]
-        self.axes[0, 3].set_title("border")
+        # contour
+        contour = data["contour"].squeeze().numpy()
+        img_segs_post = cm.tab20b(contour)[:, :, :3]
+        self.axes[0, 3].set_title("contour")
         self.axes[0, 3].imshow(img_segs_post)
 
         # Prediction
@@ -116,3 +116,4 @@ class TripleVisualizer(BaseVisualizer):
             "pred_semantic": (pred_semantic, True),
             "pred_contour": (pred_contour, False),
         }
+        self.current_max = max(np.max(depths), np.max(pred_depth))
