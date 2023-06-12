@@ -11,9 +11,9 @@
 # For category 3 it is either "multi_loss" for 2 heads, or "triple_loss" for 3.
 # Do not specify in data_flag/type when using these models
 
-# Finally we have "soble_loss", "contour_loss" and "semantic_baseline" used in ablation
+# Finally we have "sobel_loss", "contour_loss" and "semantic_baseline" used in ablation
 # studies
-model_type: "multi_loss"
+model_type: "uefficientnet_b4"
 # specifies the type of encoding-decoding architecture used in multi_ and triple_loss
 # can be either "DeepLabV3" or "UNet"
 super_model: "UNet"
@@ -23,7 +23,7 @@ device: "cuda"
 
 # wandb settings
 wandb:
-    wandb: true
+    wandb: false
     entity: "semantic_md"
     project: "losses"
     group: null
