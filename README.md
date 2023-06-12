@@ -54,7 +54,7 @@ Specify the path of the downloaded model weights in `visualize` parameter of the
 
 We provide our best performing models in the above link. In need of testing other methods, please contact us for the required models.
 
-Please run `main_vis.py` in scripts/vis/maim/.
+Please run `main_vis.py` in source/scripts/vis/.
 
 #### Training Models
 Please run `python3 main.py`
